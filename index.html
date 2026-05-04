@@ -604,13 +604,13 @@
 
   <div class="cta-row">
     <a href="#quickstart" class="btn-primary">
-      see it on Claude Desktop &mdash; 5&nbsp;min <span class="arr">→</span>
+      run the demo &mdash; 2 commands <span class="arr">→</span>
     </a>
     <a href="https://github.com/DubovskiyIM/idf-mcp" class="btn-ghost">github</a>
     <a href="https://www.npmjs.com/package/@intent-driven/mcp-server" class="btn-ghost">npm install</a>
   </div>
   <div class="micro-meta">
-    open source · BSL 1.1 + MIT · no waitlist · <code>npm install @intent-driven/mcp-server</code>
+    open source · BSL 1.1 + MIT · no waitlist · <code>docker compose up</code> + <code>npm run demo:rogue</code>
   </div>
 
   <!-- ============================================================ -->
@@ -626,16 +626,17 @@
   </div>
 
   <!-- ============================================================ -->
-  <!-- LOOM                                                          -->
+  <!-- LOOM (uncomment + paste embed once recorded)                  -->
   <!-- ============================================================ -->
+  <!--
   <section class="block" id="walkthrough">
     <div class="eyebrow">75-second walkthrough</div>
     <h2>Three real scripts. Real HTTP. Verbatim terminal.</h2>
     <div class="loom-wrap" id="loom">
-      <!-- LOOM_EMBED_REPLACE_ME -->
-      <div class="loom-placeholder">video embed appears here once Loom is recorded</div>
+      <iframe src="https://www.loom.com/embed/YOUR_LOOM_ID" allowfullscreen></iframe>
     </div>
   </section>
+  -->
 
   <!-- ============================================================ -->
   <!-- WHAT FOLD DOES — 3 cells                                      -->
@@ -780,37 +781,37 @@
   <!-- QUICKSTART                                                    -->
   <!-- ============================================================ -->
   <section class="block" id="quickstart">
-    <div class="eyebrow">Try it in 5 minutes</div>
-    <h2>Three steps. Real HTTP. No mocks.</h2>
+    <div class="eyebrow">Try it in 2 commands</div>
+    <h2>Docker compose · npm install · three demos.</h2>
+    <p class="lead">Prereqs: Docker Desktop and Node 20+. The image bundles the runtime and bootstraps the <code>invest</code> demo domain on first start &mdash; no two-repo dance, no absolute paths.</p>
     <div class="quickstart-grid">
 
       <div class="cell">
         <div class="step-num">01</div>
-        <div class="step-title">Run the IDF host</div>
+        <div class="step-title">Start the runtime</div>
 <div class="terminal"><span class="prompt">$</span> git clone https://github.com\
-    /DubovskiyIM/idf
-<span class="prompt">$</span> cd idf
-<span class="prompt">$</span> npm install
-<span class="prompt">$</span> npm run server
-<span class="cmt"># → http://localhost:3001</span></div>
+    /DubovskiyIM/fold-runtime-quickstart
+<span class="prompt">$</span> cd fold-runtime-quickstart
+<span class="prompt">$</span> docker compose up
+<span class="cmt"># first run: ~3 min build</span>
+<span class="cmt"># subsequent: ~5 sec start</span></div>
       </div>
 
       <div class="cell">
         <div class="step-num">02</div>
-        <div class="step-title">Bootstrap a real domain</div>
-<div class="terminal"><span class="prompt">$</span> git clone https://github.com\
-    /DubovskiyIM/fold-runtime-quickstart
+        <div class="step-title">Install demo scripts</div>
+<div class="terminal"><span class="cmt"># in another terminal</span>
 <span class="prompt">$</span> cd fold-runtime-quickstart
 <span class="prompt">$</span> npm install
-<span class="prompt">$</span> IDF_REPO=$HOME/...idf \
-    npm run bootstrap</div>
+<span class="cmt"># → 92 packages, no native</span>
+<span class="cmt">#   builds, no compilation</span></div>
       </div>
 
       <div class="cell">
         <div class="step-num">03</div>
-        <div class="step-title">Run the WOW demo</div>
+        <div class="step-title">Run the three-act demo</div>
 <div class="terminal"><span class="prompt">$</span> npm run demo:rogue
-<span class="cmt"># → 403 with structured rejection</span>
+<span class="cmt"># → 403 structured rejection</span>
 <span class="prompt">$</span> npm run demo:grant
 <span class="cmt"># → investor issues $1K cap</span>
 <span class="prompt">$</span> npm run demo:smart
@@ -819,7 +820,7 @@
 
     </div>
     <p style="margin-top: 24px; color:var(--ink-mid); font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em;">
-      <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart">full quickstart readme →</a>
+      <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart">full quickstart readme · troubleshooting · claude desktop integration →</a>
     </p>
   </section>
 
