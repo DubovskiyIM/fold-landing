@@ -12,7 +12,7 @@ In the DNS panel for `intent-design.tech`, add a CNAME record:
 
 | Name | Type  | Value                       | TTL  |
 |------|-------|-----------------------------|------|
-| fold | CNAME | dubovskiyim.github.io.      | 3600 |
+| fold | CNAME | intent-driven-software.github.io.      | 3600 |
 
 Then in repo settings → Pages → Custom domain → `fold.intent-design.tech`.
 Wait 1-5 min for HTTPS cert provisioning. Done.
