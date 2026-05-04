@@ -618,10 +618,14 @@
   <!-- ============================================================ -->
   <div class="incident">
     <p class="quote">
-      In April 2026 a Cursor-driven agent wiped a production database and all its backups in <span class="em-warn">9 seconds</span>. The agent&rsquo;s own post-mortem: <em>&ldquo;I didn&rsquo;t verify. I didn&rsquo;t understand what I was doing before doing it.&rdquo;</em> This isn&rsquo;t an alignment problem. <span class="em-warn">The system never told the agent what it was allowed to do, why it shouldn&rsquo;t, or what would happen if it tried. Fold is the layer that does.</span>
+      On April 25 2026 a Cursor agent powered by Claude Opus 4.6, working on a credential mismatch in PocketOS staging, found an unrelated API token, decided to delete a Railway volume to fix things, and wiped the production database <em>and all volume-level backups</em> in <span class="em-warn">9 seconds</span>. The agent&rsquo;s own post-mortem: <em>&ldquo;I guessed that deleting a staging volume via the API would be scoped to staging only. I didn&rsquo;t verify. I didn&rsquo;t check if the volume ID was shared across environments.&rdquo;</em> 30-hour outage. PocketOS rolled back to a 3-month-old backup. <span class="em-warn">This isn&rsquo;t an alignment problem. The system never told the agent what it was allowed to do, why it shouldn&rsquo;t, or what would happen if it tried. Fold is the layer that does.</span>
     </p>
     <cite>
-      <a href="https://www.theregister.com/2026/04/27/cursoropus_agent_snuffs_out_pocketos/" target="_blank" rel="noopener">The Register · April 27 2026</a>
+      <a href="https://www.theregister.com/2026/04/27/cursoropus_agent_snuffs_out_pocketos/" target="_blank" rel="noopener">The Register</a>
+      &nbsp;·&nbsp;
+      <a href="https://www.fastcompany.com/91533544/cursor-claude-ai-agent-deleted-software-company-pocket-os-database-jer-crane" target="_blank" rel="noopener">FastCompany</a>
+      &nbsp;·&nbsp;
+      <a href="https://oecd.ai/en/incidents/2026-04-27-6153" target="_blank" rel="noopener">OECD AI Incident #6153</a>
     </cite>
   </div>
 
