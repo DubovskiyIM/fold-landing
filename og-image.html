@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background: #14120f;
+    color: #f0ebdf;
+    font-family: 'Fraunces', Georgia, serif;
+  }
+
+  .wrap {
+    width: 1200px;
+    height: 630px;
+    padding: 64px 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    color: #a7a295;
+  }
+  .brand .name { color: #f0ebdf; font-size: 22px; margin-right: 12px; }
+  .brand .dot { color: #2a2721; margin: 0 12px; }
+
+  .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    color: #6a675f;
+    text-transform: uppercase;
+    text-align: right;
+  }
+
+  .body {
+    margin-top: 48px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #7a8eb8;
+    margin-bottom: 32px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    font-size: 78px;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: #f0ebdf;
+    font-variation-settings: '"opsz" 144';
+    margin: 0;
+  }
+  h1 em {
+    color: #7a8eb8;
+    font-style: italic;
+  }
+
+  .terminal-snip {
+    margin-top: 48px;
+    background: #0e0c0a;
+    border: 1px solid #2a2721;
+    border-left: 3px solid #e07777;
+    padding: 22px 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    line-height: 1.55;
+    color: #a7a295;
+    border-radius: 2px;
+  }
+  .terminal-snip .err { color: #e07777; font-weight: 500; }
+  .terminal-snip .kw { color: #7a8eb8; }
+  .terminal-snip .str { color: #6fbf7f; }
+
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    color: #6a675f;
+  }
+  .bottom .url {
+    color: #7a8eb8;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <span class="name">Fold</span>
+      <span class="dot">·</span>
+      domain runtime for AI agents
+    </div>
+    <div class="meta">v1.0.0 · open source</div>
+  </div>
+
+  <div class="body">
+    <div class="eyebrow">A domain runtime for AI agents</div>
+    <h1>Stop giving AI agents API keys.<br>Give them a <em>domain</em>.</h1>
+
+    <div class="terminal-snip">
+HTTP <span class="err">403</span><br>
+{ <span class="kw">"error"</span>: <span class="err">"preapproval_denied"</span>, <span class="kw">"reason"</span>: <span class="str">"no_preapproval"</span> }
+    </div>
+  </div>
+
+  <div class="bottom">
+    <span>npm install @intent-driven/mcp-server</span>
+    <span class="url">fold.intent-design.tech</span>
+  </div>
+
+</div>
+</body>
+</html>
