@@ -7,455 +7,297 @@
 
 <meta name="description" content="Declarative MCP runtime where AI agents get structured rejections instead of 500s. Tool descriptions carry domain semantics — invariants, lifecycle, irreversibility, role scopes — so the agent knows what it can do and why before the call, not after.">
 
-<!-- Open Graph -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="Fold — Stop giving AI agents API keys. Give them a domain.">
 <meta property="og:description" content="Declarative MCP runtime where the agent gets structured rejections instead of 500s. Open source. npm install.">
 <meta property="og:image" content="og-image.png">
 <meta property="og:url" content="https://fold.intent-design.tech/">
 
-<!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Fold — Stop giving AI agents API keys. Give them a domain.">
 <meta name="twitter:description" content="Declarative MCP runtime where the agent gets structured rejections instead of 500s. Open source. npm install.">
 <meta name="twitter:image" content="og-image.png">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
 <style>
+  /* ===== Tokens — ported from idf-studio dark default ===== */
   :root {
-    --bg: #ffffff;
-    --bg-dim: #fafaf7;
-    --bg-code: #0d1117;
-    --ink: #1a1a1a;
-    --ink-soft: #2d2d2d;
-    --muted: #6b6b6b;
-    --line: #e4e4dc;
-    --accent: #1f6feb;
-    --accent-hover: #1259d1;
-    --warn: #d97706;
-    --ok: #059669;
-    --danger: #db2777;
-    --pre-bg: #0d1117;
-    --pre-text: #e6edf3;
-    --pre-muted: #7d8590;
-    --pre-string: #a5d6ff;
-    --pre-key: #79c0ff;
-    --pre-comment: #6e7681;
-    --pre-warn: #ffa657;
-    --pre-err: #ff7b72;
-    --pre-ok: #7ee787;
+    --paper: #14120f;
+    --paper-dim: #1b1916;
+    --paper-bright: #0e0c0a;
+    --ink: #f0ebdf;
+    --ink-dim: #a7a295;
+    --ink-mid: #6a675f;
+    --rule: #2a2721;
+    --rule-dim: #221f1a;
+    --accent: #7a8eb8;
+    --accent-bg: rgba(122, 142, 184, 0.10);
+    --accent-strong: rgba(122, 142, 184, 0.22);
+    --ok: #6fbf7f;
+    --warn: #d4a24c;
+    --danger: #e07777;
+
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+    color-scheme: dark;
   }
 
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "SF Pro Text", system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--ink);
+  *, *::before, *::after {
     margin: 0;
-    line-height: 1.55;
-    font-size: 15.5px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    padding: 0;
+    box-sizing: border-box;
   }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
   a {
     color: var(--accent);
-    text-decoration: none;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
   }
-  a:hover { text-decoration: underline; }
-  code, pre {
-    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  a:hover { text-decoration-thickness: 2px; }
+
+  ::selection { background: var(--accent); color: var(--paper); }
+
+  h1, h2, h3, h4 {
+    font-family: var(--serif);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
+
   code {
-    font-size: 0.92em;
-    background: #f1f1ec;
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--paper-dim);
     padding: 1px 6px;
-    border-radius: 4px;
+    border-radius: 3px;
+    color: var(--accent);
   }
-  pre {
-    background: var(--pre-bg);
-    color: var(--pre-text);
-    padding: 18px 22px;
-    border-radius: 8px;
-    overflow-x: auto;
-    font-size: 13px;
-    line-height: 1.55;
-    margin: 0;
-  }
-  pre .c { color: var(--pre-comment); }
-  pre .k { color: var(--pre-key); }
-  pre .s { color: var(--pre-string); }
-  pre .w { color: var(--pre-warn); }
-  pre .e { color: var(--pre-err); font-weight: 600; }
-  pre .ok { color: var(--pre-ok); font-weight: 600; }
-  pre .m { color: var(--pre-muted); }
 
-  /* Layout */
-  .container {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 0 28px;
+  /* ===== Header / footer mono ===== */
+  header.masthead, footer {
+    padding: 18px 48px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
   }
-  section { padding: 64px 0; }
-
-  /* Top nav */
-  nav {
-    border-bottom: 1px solid var(--line);
-    padding: 14px 0;
-    background: var(--bg);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-  nav .container {
+  header.masthead { border-bottom: 1px solid var(--rule); }
+  header.masthead .brand-block {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 14px;
   }
-  nav .brand {
-    font-weight: 600;
-    font-size: 16px;
-    letter-spacing: -0.01em;
+  header.masthead .brand-name {
+    font-size: 18px;
     color: var(--ink);
   }
-  nav .brand .ver {
-    color: var(--muted);
+  header.masthead .dot { color: var(--rule); }
+  header.masthead nav.links { display: flex; gap: 20px; }
+  header.masthead nav.links a {
+    color: var(--ink-dim);
+    text-decoration: none;
+  }
+  header.masthead nav.links a:hover { color: var(--ink); }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    font-size: 11px;
+    color: var(--ink-mid);
+  }
+  footer a {
+    color: var(--ink-mid);
+    text-decoration: none;
+  }
+  footer a:hover { color: var(--ink); }
+  footer .links { display: flex; gap: 18px; flex-wrap: wrap; }
+
+  /* ===== Layout ===== */
+  main {
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 80px 48px 120px;
+  }
+
+  /* ===== Eyebrow ===== */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+  }
+  .eyebrow.accent { color: var(--accent); }
+
+  /* ===== Hero ===== */
+  .hero-eyebrow { margin-bottom: 28px; }
+
+  h1.hero {
+    font-family: var(--serif);
     font-weight: 400;
-    font-size: 12px;
-    margin-left: 4px;
-    font-family: "SF Mono", monospace;
+    font-size: clamp(2.6rem, 5.6vw, 4.8rem);
+    line-height: 1.0;
+    letter-spacing: -0.035em;
+    margin-bottom: 32px;
+    font-variation-settings: '"opsz" 144';
   }
-  nav .links a {
-    color: var(--ink-soft);
-    margin-left: 22px;
-    font-size: 14px;
-  }
-  nav .links a.cta {
+  h1.hero em {
     color: var(--accent);
+    font-style: italic;
+  }
+
+  p.lead {
+    font-family: var(--serif);
+    font-size: clamp(1.05rem, 1.65vw, 1.3rem);
+    line-height: 1.5;
+    max-width: 640px;
+    color: var(--ink);
+    margin-bottom: 48px;
+  }
+  p.lead .em {
+    color: var(--ink);
     font-weight: 500;
   }
 
-  /* Hero */
-  .hero {
-    padding: 80px 0 56px;
-    border-bottom: 1px solid var(--line);
-  }
-  .hero h1 {
-    font-size: 44px;
-    line-height: 1.12;
-    letter-spacing: -0.025em;
-    font-weight: 600;
-    margin: 0 0 18px;
-    max-width: 880px;
-  }
-  .hero h1 .em {
-    color: var(--accent);
-  }
-  .hero .lead {
-    font-size: 17px;
-    color: var(--muted);
-    max-width: 720px;
-    margin: 0 0 32px;
-    line-height: 1.55;
-  }
-  .hero .lead b { color: var(--ink); font-weight: 500; }
-  .hero .cta-row {
+  .cta-row {
     display: flex;
+    gap: 14px;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-  }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 18px;
-    border-radius: 6px;
-    font-size: 14.5px;
-    font-weight: 500;
-    transition: background 0.15s, color 0.15s;
-    border: 1px solid transparent;
   }
   .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    border: 1px solid var(--accent);
     background: var(--accent);
-    color: #fff;
+    color: var(--paper);
+    text-decoration: none;
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    transition: background 0.15s, color 0.15s;
   }
   .btn-primary:hover {
-    background: var(--accent-hover);
-    text-decoration: none;
-  }
-  .btn-secondary {
     background: transparent;
-    color: var(--ink);
-    border-color: var(--line);
-  }
-  .btn-secondary:hover {
-    background: var(--bg-dim);
+    color: var(--accent);
     text-decoration: none;
   }
+  .btn-primary .arr { opacity: 0.7; }
 
-  /* Sub-hero block (incident) */
+  .btn-ghost {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+  }
+  .btn-ghost:hover { color: var(--ink); text-decoration: none; }
+
+  .micro-meta {
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mid);
+    letter-spacing: 0.04em;
+  }
+  .micro-meta a { color: var(--ink-mid); }
+
+  /* ===== Incident block ===== */
   .incident {
-    background: var(--bg-dim);
-    border-bottom: 1px solid var(--line);
-    padding: 48px 0;
+    margin-top: 96px;
+    padding: 36px 32px;
+    border: 1px solid var(--rule);
+    border-left: 2px solid var(--accent);
+    background: var(--paper-bright);
   }
   .incident .quote {
-    font-size: 18px;
-    line-height: 1.55;
-    color: var(--ink-soft);
-    max-width: 820px;
-    margin: 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+    line-height: 1.5;
+    color: var(--ink);
+    max-width: 720px;
   }
   .incident .quote .em-warn {
-    color: var(--ink);
-    font-weight: 500;
+    font-style: normal;
+    color: var(--accent);
   }
   .incident cite {
     display: block;
     font-style: normal;
-    color: var(--muted);
-    font-size: 13.5px;
-    margin-top: 14px;
-  }
-  .incident cite a { color: var(--muted); border-bottom: 1px dotted var(--muted); }
-  .incident cite a:hover { color: var(--ink); text-decoration: none; }
-
-  /* Section title */
-  h2 {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.012em;
-    margin: 0 0 8px;
-  }
-  .section-lead {
-    color: var(--muted);
-    font-size: 15px;
-    max-width: 760px;
-    margin: 0 0 32px;
-  }
-
-  /* 3-column proof points */
-  .proof-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 24px;
-  }
-  .proof {
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 22px 24px;
-    background: var(--bg);
-  }
-  .proof h3 {
-    font-size: 15px;
-    margin: 0 0 10px;
-    color: var(--ink);
-    font-weight: 600;
-  }
-  .proof p {
-    color: var(--ink-soft);
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.55;
-  }
-  .proof code {
-    font-size: 12.5px;
-  }
-  @media (max-width: 760px) {
-    .proof-grid { grid-template-columns: 1fr; }
-  }
-
-  /* Live demo block */
-  .live-demo {
-    margin: 0 0 16px;
-  }
-  .live-demo .label {
-    font-size: 12px;
-    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-mid);
+    margin-top: 18px;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 600;
-    margin: 0 0 8px;
   }
+  .incident cite a {
+    color: var(--ink-mid);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--ink-mid);
+  }
+  .incident cite a:hover { color: var(--ink); }
 
-  /* Comparison table */
-  .compare-wrap {
-    overflow-x: auto;
+  /* ===== Section block ===== */
+  section.block {
+    margin-top: 96px;
   }
-  table.compare {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    overflow: hidden;
+  section.block .eyebrow {
+    margin-bottom: 12px;
   }
-  table.compare th, table.compare td {
-    padding: 12px 14px;
-    text-align: center;
-    border-bottom: 1px solid var(--line);
+  section.block h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.6rem, 2.4vw, 2.0rem);
+    margin-bottom: 18px;
   }
-  table.compare th {
-    background: var(--bg-dim);
-    font-weight: 600;
-    color: var(--ink);
-    font-size: 13px;
-    line-height: 1.3;
-  }
-  table.compare td.feat {
-    text-align: left;
-    color: var(--ink-soft);
-    font-weight: 400;
-  }
-  table.compare td.feat b {
-    color: var(--ink);
-    font-weight: 600;
-  }
-  table.compare td.y { color: var(--ok); font-weight: 600; }
-  table.compare td.n { color: #ccc; }
-  table.compare td.fold { background: #f0f7ff; color: var(--accent); font-weight: 700; }
-  table.compare th.fold { background: #e6f0ff; color: var(--accent); }
-  table.compare td.partial { color: var(--warn); font-weight: 500; font-style: italic; }
-  table.compare tr:last-child td { border-bottom: none; }
-
-  /* Quickstart 3 boxes */
-  .quickstart-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 18px;
-  }
-  .step {
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--bg);
-  }
-  .step .step-head {
-    padding: 14px 16px 8px;
-    border-bottom: 1px solid var(--line);
-    background: var(--bg-dim);
-  }
-  .step .step-num {
-    display: inline-block;
-    width: 22px;
-    height: 22px;
-    line-height: 22px;
-    text-align: center;
-    border-radius: 50%;
-    background: var(--ink);
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-    margin-right: 8px;
-  }
-  .step .step-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ink);
-  }
-  .step pre {
-    border-radius: 0;
-    padding: 14px 16px;
-    font-size: 12.5px;
+  section.block .lead {
+    font-family: var(--serif);
+    font-size: 1.05rem;
     line-height: 1.5;
-  }
-  @media (max-width: 760px) {
-    .quickstart-grid { grid-template-columns: 1fr; }
-  }
-
-  /* Who is this for */
-  .who {
-    background: var(--bg-dim);
-    padding: 56px 0;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-  }
-  .who p {
-    font-size: 15.5px;
-    color: var(--ink-soft);
-    max-width: 780px;
-    margin: 0 0 14px;
-  }
-  .who p.not-for {
-    color: var(--muted);
-    font-size: 14px;
+    color: var(--ink-dim);
+    max-width: 720px;
+    margin-bottom: 36px;
   }
 
-  /* Final CTA */
-  .final-cta {
-    text-align: center;
-    padding: 72px 0;
-  }
-  .final-cta h2 {
-    font-size: 28px;
-    margin: 0 0 12px;
-    letter-spacing: -0.015em;
-  }
-  .final-cta p {
-    color: var(--muted);
-    max-width: 560px;
-    margin: 0 auto 28px;
-  }
-  .final-cta .cta-row {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  /* Footer */
-  footer {
-    border-top: 1px solid var(--line);
-    padding: 36px 0;
-    color: var(--muted);
-    font-size: 13.5px;
-    background: var(--bg-dim);
-  }
-  footer .container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 30px 40px;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-  footer .col-link a {
-    display: block;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-    font-size: 13.5px;
-  }
-  footer .col-link h4 {
-    margin: 0 0 8px;
-    color: var(--ink);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-  }
-  footer .meta {
-    color: var(--muted);
-    font-size: 12.5px;
-    flex-basis: 100%;
-    border-top: 1px solid var(--line);
-    padding-top: 18px;
-    margin-top: 8px;
-  }
-
-  /* Loom embed */
+  /* ===== Loom embed ===== */
   .loom-wrap {
     position: relative;
     padding-bottom: 56.25%;
     height: 0;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid var(--line);
-    background: var(--bg-dim);
-    margin: 32px 0 0;
+    border: 1px solid var(--rule);
+    background: var(--paper-bright);
+    margin-top: 32px;
   }
   .loom-wrap iframe {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     border: 0;
@@ -466,171 +308,401 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--muted);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ===== 4-cell grid (proof points) ===== */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    border-top: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+  }
+  .grid .cell {
+    padding: 28px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .grid .cell .num {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-mid);
+    letter-spacing: 0.16em;
+    margin-bottom: 10px;
+  }
+  .grid .cell .title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.15rem;
+    margin-bottom: 8px;
+    color: var(--ink);
+  }
+  .grid .cell .copy {
+    font-size: 14px;
+    color: var(--ink-dim);
+    line-height: 1.55;
+  }
+  .grid .cell .copy code { font-size: 12px; }
+
+  /* ===== Demo terminal block ===== */
+  .terminal {
+    background: var(--paper-bright);
+    border: 1px solid var(--rule);
+    padding: 22px 26px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    overflow-x: auto;
+    color: var(--ink-dim);
+    white-space: pre;
+  }
+  .terminal .prompt { color: var(--ink-mid); }
+  .terminal .kw { color: var(--accent); }
+  .terminal .str { color: var(--ok); }
+  .terminal .num { color: var(--warn); }
+  .terminal .err { color: var(--danger); font-weight: 500; }
+  .terminal .ok { color: var(--ok); font-weight: 500; }
+  .terminal .cmt { color: var(--ink-mid); }
+  .terminal .ink { color: var(--ink); }
+  .terminal .rule { color: var(--rule); }
+
+  .demo-caption {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin: 24px 0 8px;
+  }
+  .demo-caption:first-child { margin-top: 0; }
+
+  /* ===== Compare table ===== */
+  .compare-wrap { overflow-x: auto; }
+  table.compare {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--sans);
     font-size: 13.5px;
+    border: 1px solid var(--rule);
+  }
+  table.compare th, table.compare td {
+    padding: 14px 16px;
+    text-align: center;
+    border-bottom: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+  }
+  table.compare th:last-child, table.compare td:last-child { border-right: none; }
+  table.compare tr:last-child td { border-bottom: none; }
+  table.compare th {
+    background: var(--paper-bright);
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    line-height: 1.35;
+  }
+  table.compare th small {
+    display: block;
+    color: var(--ink-mid);
+    font-size: 10px;
+    font-weight: 400;
+    margin-top: 4px;
+    text-transform: none;
+    letter-spacing: 0.04em;
+  }
+  table.compare td.feat {
+    text-align: left;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 14.5px;
+    font-weight: 400;
+  }
+  table.compare td.feat strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  table.compare td.y { color: var(--ok); font-weight: 600; }
+  table.compare td.n { color: var(--rule); }
+  table.compare td.partial {
+    color: var(--warn);
+    font-style: italic;
+    font-size: 12.5px;
+  }
+  table.compare th.fold {
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+  table.compare td.fold {
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  /* ===== 3-step quickstart cells ===== */
+  .quickstart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    border-top: 1px solid var(--rule);
+    border-left: 1px solid var(--rule);
+    margin-top: 32px;
+  }
+  .quickstart-grid .cell {
+    padding: 24px 24px 0;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+  }
+  .quickstart-grid .cell .step-num {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-mid);
+    letter-spacing: 0.16em;
+    margin-bottom: 8px;
+  }
+  .quickstart-grid .cell .step-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+  .quickstart-grid .cell .terminal {
+    margin: 0 -24px -1px;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    flex: 1;
+  }
+
+  /* ===== Who section ===== */
+  .who {
+    margin-top: 96px;
+    padding: 36px 32px;
+    border: 1px solid var(--rule);
+    background: var(--paper-bright);
+  }
+  .who p {
+    font-family: var(--serif);
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+    line-height: 1.55;
+    color: var(--ink);
+    max-width: 720px;
+    margin-bottom: 14px;
+  }
+  .who p.not-for {
+    font-family: var(--sans);
+    color: var(--ink-mid);
+    font-size: 14px;
     font-style: italic;
   }
+
+  /* ===== Final CTA ===== */
+  .final-cta {
+    margin-top: 96px;
+    padding: 64px 32px;
+    border: 1px solid var(--rule);
+    text-align: center;
+  }
+  .final-cta h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+  .final-cta h2 code {
+    font-size: 0.85em;
+    background: transparent;
+    color: var(--accent);
+    padding: 0;
+  }
+  .final-cta .subline {
+    color: var(--ink-dim);
+    max-width: 560px;
+    margin: 0 auto 28px;
+    font-size: 14.5px;
+  }
+  .final-cta .cta-row {
+    justify-content: center;
+  }
+
 </style>
 </head>
 <body>
 
 <!-- ============================================================ -->
-<!-- NAV                                                          -->
+<!-- MASTHEAD                                                      -->
 <!-- ============================================================ -->
-<nav>
-  <div class="container">
-    <span class="brand">Fold <span class="ver">@intent-driven/mcp-server v1.0.0</span></span>
-    <span class="links">
-      <a href="#quickstart">Quickstart</a>
-      <a href="#compare">Compare</a>
-      <a href="https://github.com/DubovskiyIM/idf-mcp">GitHub</a>
-      <a href="https://www.npmjs.com/package/@intent-driven/mcp-server" class="cta">npm</a>
-    </span>
+<header class="masthead">
+  <div class="brand-block">
+    <span class="brand-name">Fold</span>
+    <span class="dot">·</span>
+    <span>domain runtime for AI agents</span>
+    <span class="dot">·</span>
+    <span>v1.0.0</span>
   </div>
-</nav>
-
-<!-- ============================================================ -->
-<!-- HERO                                                         -->
-<!-- ============================================================ -->
-<header class="hero">
-  <div class="container">
-    <h1>Stop giving AI agents API keys.<br>Give them a <span class="em">domain</span>.</h1>
-    <p class="lead">
-      Fold is the runtime layer where an AI agent <b>knows what it can do, why it can&rsquo;t, and what happens if it tries</b> &mdash; before the call, not after the database is gone.
-    </p>
-    <div class="cta-row">
-      <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart" class="btn btn-primary">See it on Claude Desktop &mdash; 5&nbsp;min&nbsp;→</a>
-      <a href="https://github.com/DubovskiyIM/idf-mcp" class="btn btn-secondary">GitHub</a>
-      <a href="https://www.npmjs.com/package/@intent-driven/mcp-server" class="btn btn-secondary">npm install</a>
-    </div>
-  </div>
+  <nav class="links">
+    <a href="#what">what</a>
+    <a href="#compare">compare</a>
+    <a href="#quickstart">quickstart</a>
+    <a href="https://github.com/DubovskiyIM/idf-mcp">github</a>
+    <a href="https://www.npmjs.com/package/@intent-driven/mcp-server">npm</a>
+  </nav>
 </header>
 
 <!-- ============================================================ -->
-<!-- INCIDENT QUOTE                                               -->
+<!-- HERO                                                          -->
 <!-- ============================================================ -->
-<section class="incident">
-  <div class="container">
+<main>
+
+  <div class="eyebrow accent hero-eyebrow">A domain runtime for AI agents</div>
+
+  <h1 class="hero">
+    Stop giving AI agents API keys. <em>Give them a domain.</em>
+  </h1>
+
+  <p class="lead">
+    Fold is the runtime layer where an AI agent <span class="em">knows what it can do, why it can&rsquo;t, and what happens if it tries</span> &mdash; before the call, not after the database is gone.
+  </p>
+
+  <div class="cta-row">
+    <a href="#quickstart" class="btn-primary">
+      see it on Claude Desktop &mdash; 5&nbsp;min <span class="arr">→</span>
+    </a>
+    <a href="https://github.com/DubovskiyIM/idf-mcp" class="btn-ghost">github</a>
+    <a href="https://www.npmjs.com/package/@intent-driven/mcp-server" class="btn-ghost">npm install</a>
+  </div>
+  <div class="micro-meta">
+    open source · BSL 1.1 + MIT · no waitlist · <code>npm install @intent-driven/mcp-server</code>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- INCIDENT QUOTE                                                -->
+  <!-- ============================================================ -->
+  <div class="incident">
     <p class="quote">
       In April 2026 a Cursor-driven agent wiped a production database and all its backups in <span class="em-warn">9 seconds</span>. The agent&rsquo;s own post-mortem: <em>&ldquo;I didn&rsquo;t verify. I didn&rsquo;t understand what I was doing before doing it.&rdquo;</em> This isn&rsquo;t an alignment problem. <span class="em-warn">The system never told the agent what it was allowed to do, why it shouldn&rsquo;t, or what would happen if it tried. Fold is the layer that does.</span>
     </p>
     <cite>
-      &mdash; <a href="https://www.theregister.com/2026/04/27/cursoropus_agent_snuffs_out_pocketos/" target="_blank" rel="noopener">The Register, April 27 2026</a>
+      <a href="https://www.theregister.com/2026/04/27/cursoropus_agent_snuffs_out_pocketos/" target="_blank" rel="noopener">The Register · April 27 2026</a>
     </cite>
   </div>
-</section>
 
-<!-- ============================================================ -->
-<!-- LOOM                                                         -->
-<!-- ============================================================ -->
-<section style="padding-top:48px; padding-bottom:24px;">
-  <div class="container">
-    <h2>75-second walkthrough</h2>
-    <p class="section-lead">Three real scripts against a real IDF runtime. No mocks. The terminal output is verbatim.</p>
+  <!-- ============================================================ -->
+  <!-- LOOM                                                          -->
+  <!-- ============================================================ -->
+  <section class="block" id="walkthrough">
+    <div class="eyebrow">75-second walkthrough</div>
+    <h2>Three real scripts. Real HTTP. Verbatim terminal.</h2>
     <div class="loom-wrap" id="loom">
       <!-- LOOM_EMBED_REPLACE_ME -->
-      <div class="loom-placeholder">video embed will appear here once Loom is recorded</div>
+      <div class="loom-placeholder">video embed appears here once Loom is recorded</div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============================================================ -->
-<!-- THREE PROOF POINTS                                           -->
-<!-- ============================================================ -->
-<section>
-  <div class="container">
-    <h2>What Fold actually does</h2>
-    <p class="section-lead">Three properties, all derived from one declarative IDF artifact. No code-gen, no middleware to maintain.</p>
-    <div class="proof-grid">
-
-      <div class="proof">
-        <h3>Declarative, not imperative</h3>
-        <p>Describe entities, intents, invariants, role scopes, irreversibility points in one IDF artifact. The runtime enforces. No <code>if&nbsp;(role&nbsp;===&nbsp;&quot;admin&quot;)</code> spaghetti. Add a new role tomorrow &mdash; every reader (UI, voice, agent, document) sees it.</p>
+  <!-- ============================================================ -->
+  <!-- WHAT FOLD DOES — 3 cells                                      -->
+  <!-- ============================================================ -->
+  <section class="block" id="what">
+    <div class="eyebrow">What Fold does</div>
+    <h2>Three properties, one declarative artifact.</h2>
+    <p class="lead">No code-gen. No middleware to maintain. Author the IDF artifact once &mdash; every reader (UI, voice, agent, document) sees the same domain.</p>
+    <div class="grid">
+      <div class="cell">
+        <div class="num">01</div>
+        <div class="title">Declarative, not imperative</div>
+        <div class="copy">
+          Describe entities, intents, invariants, role scopes, irreversibility points in one IDF artifact. The runtime enforces. No <code>if(role===&quot;admin&quot;)</code> spaghetti. Add a new role tomorrow &mdash; every reader sees it.
+        </div>
       </div>
-
-      <div class="proof">
-        <h3>Structured rejections, not 422s</h3>
-        <p>The agent receives <code>{ error, reason, failedCheck, details }</code> &mdash; not &ldquo;Internal Server Error,&rdquo; not a string. A JSON shape the LLM can read and adapt to. Agent scales the order down, retries, succeeds.</p>
+      <div class="cell">
+        <div class="num">02</div>
+        <div class="title">Structured rejections, not 422s</div>
+        <div class="copy">
+          The agent receives <code>{ error, reason, failedCheck, details }</code>. Not &ldquo;Internal Server Error.&rdquo; Not a string. A JSON shape the LLM can read and adapt to. Agent scales the order down, retries, succeeds.
+        </div>
       </div>
-
-      <div class="proof">
-        <h3>Irreversibility as a primitive</h3>
-        <p>Mark an effect <code>__irr.point=&quot;high&quot;</code> and the runtime blocks <code>α:remove</code> on anything past it. Forward-correction only. By construction, not by guardrail. Cursor-style &ldquo;agent decided to delete production&rdquo; becomes <em>unreachable</em>.</p>
+      <div class="cell">
+        <div class="num">03</div>
+        <div class="title">Irreversibility as a primitive</div>
+        <div class="copy">
+          Mark an effect <code>__irr.point=&quot;high&quot;</code> and the runtime blocks <code>α:remove</code> on anything past it. Forward-correction only. By construction, not by guardrail. Cursor-style &ldquo;agent decided to delete production&rdquo; becomes <em>unreachable</em>.
+        </div>
       </div>
-
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============================================================ -->
-<!-- LIVE DEMO OUTPUT                                             -->
-<!-- ============================================================ -->
-<section style="padding-top: 24px;">
-  <div class="container">
-    <h2>What it looks like</h2>
-    <p class="section-lead">Verbatim output from <code>npm&nbsp;run&nbsp;demo:rogue</code> in the quickstart repo. Agent tries a $50,000 BTC long without preapproval.</p>
+  <!-- ============================================================ -->
+  <!-- LIVE DEMO                                                     -->
+  <!-- ============================================================ -->
+  <section class="block" id="live">
+    <div class="eyebrow">What it looks like</div>
+    <h2>A rogue agent walks into a runtime.</h2>
+    <p class="lead">Verbatim output from <code>npm&nbsp;run&nbsp;demo:rogue</code> in the quickstart. Agent tries a $50,000 BTC long without preapproval.</p>
 
-    <div class="live-demo">
-      <p class="label">Step 1 &mdash; agent sends the order</p>
-<pre>$ npm run demo:rogue
-<span class="m">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  Step 2 &mdash; <span class="w">Rogue agent: 'Hmm, $50,000 BTC long, sounds reasonable'</span>
-<span class="m">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  <span class="c">Agent sends:</span>
-  {
-    <span class="k">&quot;portfolioId&quot;</span>: <span class="s">&quot;p_demo&quot;</span>,
-    <span class="k">&quot;assetId&quot;</span>:     <span class="s">&quot;BTC&quot;</span>,
-    <span class="k">&quot;α&quot;</span>:           <span class="s">&quot;long&quot;</span>,
-    <span class="k">&quot;quantity&quot;</span>:    <span class="w">0.5</span>,
-    <span class="k">&quot;price&quot;</span>:       <span class="w">100000</span>,
-    <span class="k">&quot;total&quot;</span>:       <span class="w">50000</span>,
-    <span class="k">&quot;assetType&quot;</span>:   <span class="s">&quot;crypto&quot;</span>
-  }</pre>
-    </div>
+    <div class="demo-caption">Step 1 &mdash; agent sends the order</div>
+<div class="terminal"><span class="prompt">$</span> npm run demo:rogue
+<span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+  Step 2 &mdash; <span class="warn">Rogue agent: 'Hmm, $50,000 BTC long, sounds reasonable'</span>
+<span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+  <span class="cmt">Agent sends:</span>
+  <span class="ink">{</span>
+    <span class="kw">"portfolioId"</span><span class="ink">:</span> <span class="str">"p_demo"</span><span class="ink">,</span>
+    <span class="kw">"assetId"</span><span class="ink">:</span>     <span class="str">"BTC"</span><span class="ink">,</span>
+    <span class="kw">"α"</span><span class="ink">:</span>           <span class="str">"long"</span><span class="ink">,</span>
+    <span class="kw">"quantity"</span><span class="ink">:</span>    <span class="num">0.5</span><span class="ink">,</span>
+    <span class="kw">"price"</span><span class="ink">:</span>       <span class="num">100000</span><span class="ink">,</span>
+    <span class="kw">"total"</span><span class="ink">:</span>       <span class="num">50000</span><span class="ink">,</span>
+    <span class="kw">"assetType"</span><span class="ink">:</span>   <span class="str">"crypto"</span>
+  <span class="ink">}</span></div>
 
-    <div class="live-demo" style="margin-top: 24px;">
-      <p class="label">Step 2 &mdash; the runtime intercepts before any effect lands</p>
-<pre>  <span class="m">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+    <div class="demo-caption">Step 2 &mdash; the runtime intercepts before any effect lands</div>
+<div class="terminal"><span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
   Step 3 &mdash; Fold runtime intercepts BEFORE the effect is ingested
-  <span class="m">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  HTTP <span class="e">403</span>
+<span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+  HTTP <span class="err">403</span>
   Body:
-  {
-    <span class="k">&quot;error&quot;</span>:    <span class="e">&quot;preapproval_denied&quot;</span>,
-    <span class="k">&quot;intentId&quot;</span>: <span class="s">&quot;agent_execute_preapproved_order&quot;</span>,
-    <span class="k">&quot;reason&quot;</span>:   <span class="s">&quot;no_preapproval&quot;</span>,
-    <span class="k">&quot;details&quot;</span>: {
-      <span class="k">&quot;entity&quot;</span>:      <span class="s">&quot;AgentPreapproval&quot;</span>,
-      <span class="k">&quot;ownerField&quot;</span>:  <span class="s">&quot;userId&quot;</span>,
-      <span class="k">&quot;viewerId&quot;</span>:    <span class="s">&quot;user_5f57c252&quot;</span>
-    }
-  }</pre>
-    </div>
+  <span class="ink">{</span>
+    <span class="kw">"error"</span><span class="ink">:</span>    <span class="err">"preapproval_denied"</span><span class="ink">,</span>
+    <span class="kw">"intentId"</span><span class="ink">:</span> <span class="str">"agent_execute_preapproved_order"</span><span class="ink">,</span>
+    <span class="kw">"reason"</span><span class="ink">:</span>   <span class="str">"no_preapproval"</span><span class="ink">,</span>
+    <span class="kw">"details"</span><span class="ink">: {</span>
+      <span class="kw">"entity"</span><span class="ink">:</span>      <span class="str">"AgentPreapproval"</span><span class="ink">,</span>
+      <span class="kw">"ownerField"</span><span class="ink">:</span>  <span class="str">"userId"</span><span class="ink">,</span>
+      <span class="kw">"viewerId"</span><span class="ink">:</span>    <span class="str">"user_5f57c252"</span>
+    <span class="ink">}</span>
+  <span class="ink">}</span></div>
 
-    <p style="margin-top:18px; color:var(--muted); font-size:14px;">
+    <p style="margin-top: 28px; font-family: var(--serif); font-size: 1.05rem; color: var(--ink-dim); line-height: 1.55; max-width: 720px;">
       Without Fold: a <code>200&nbsp;OK</code>. Position created. $50,000 of someone else&rsquo;s money moved before any human saw it.<br>
       With Fold: the runtime rejected the call <em>declaratively</em>, with a structured <code>failedCheck</code> the agent can reason about. <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart#act-3--smart-agent-reads-the-limit-scales-down-executes">See Act 3 →</a>
     </p>
 
-  </div>
-</section>
+  </section>
 
-<!-- ============================================================ -->
-<!-- COMPARE                                                      -->
-<!-- ============================================================ -->
-<section id="compare">
-  <div class="container">
+  <!-- ============================================================ -->
+  <!-- COMPARE                                                       -->
+  <!-- ============================================================ -->
+  <section class="block" id="compare">
+    <div class="eyebrow">Compare</div>
     <h2>How is this different from&hellip;</h2>
-    <p class="section-lead">Fold doesn&rsquo;t replace these layers. It is the <em>missing</em> one.</p>
-
+    <p class="lead">Fold doesn&rsquo;t replace these layers. It is the <em>missing</em> one.</p>
     <div class="compare-wrap">
       <table class="compare">
         <thead>
           <tr>
             <th style="text-align:left;">&nbsp;</th>
-            <th>Frameworks<br><small>LangChain, CrewAI, Mastra</small></th>
-            <th>Auth<br><small>Permit.io, Okta, Cerbos</small></th>
-            <th>Guardrails<br><small>Lakera, NeMo</small></th>
+            <th>Frameworks<small>LangChain · CrewAI · Mastra</small></th>
+            <th>Auth<small>Permit · Okta · Cerbos</small></th>
+            <th>Guardrails<small>Lakera · NeMo</small></th>
             <th class="fold">Fold</th>
           </tr>
         </thead>
@@ -657,7 +729,7 @@
             <td class="n">—</td>
           </tr>
           <tr>
-            <td class="feat"><b>Defines what the agent can do in your business and why</b></td>
+            <td class="feat"><strong>Defines what the agent can do in your business and why</strong></td>
             <td class="n">—</td>
             <td class="n">—</td>
             <td class="n">—</td>
@@ -668,125 +740,103 @@
             <td class="partial">partial</td>
             <td class="partial">partial</td>
             <td class="partial">partial</td>
-            <td class="fold">✓ (BSL+MIT)</td>
+            <td class="fold">✓ · BSL+MIT</td>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============================================================ -->
-<!-- QUICKSTART                                                   -->
-<!-- ============================================================ -->
-<section id="quickstart">
-  <div class="container">
-    <h2>Try it in 5 minutes</h2>
-    <p class="section-lead">Three steps. Real HTTP. No mocks. The whole thing fits in one terminal.</p>
-
+  <!-- ============================================================ -->
+  <!-- QUICKSTART                                                    -->
+  <!-- ============================================================ -->
+  <section class="block" id="quickstart">
+    <div class="eyebrow">Try it in 5 minutes</div>
+    <h2>Three steps. Real HTTP. No mocks.</h2>
     <div class="quickstart-grid">
-      <div class="step">
-        <div class="step-head">
-          <span class="step-num">1</span>
-          <span class="step-title">Run the IDF host</span>
-        </div>
-<pre>git clone https://github.com\
-  /DubovskiyIM/idf
-cd idf
-npm install
-npm run server
-<span class="c"># → http://localhost:3001</span></pre>
+
+      <div class="cell">
+        <div class="step-num">01</div>
+        <div class="step-title">Run the IDF host</div>
+<div class="terminal"><span class="prompt">$</span> git clone https://github.com\
+    /DubovskiyIM/idf
+<span class="prompt">$</span> cd idf
+<span class="prompt">$</span> npm install
+<span class="prompt">$</span> npm run server
+<span class="cmt"># → http://localhost:3001</span></div>
       </div>
 
-      <div class="step">
-        <div class="step-head">
-          <span class="step-num">2</span>
-          <span class="step-title">Bootstrap a real domain</span>
-        </div>
-<pre>git clone https://github.com\
-  /DubovskiyIM/fold-runtime-quickstart
-cd fold-runtime-quickstart
-npm install
-IDF_REPO=$HOME/WebstormProjects/idf \
-  npm run bootstrap</pre>
+      <div class="cell">
+        <div class="step-num">02</div>
+        <div class="step-title">Bootstrap a real domain</div>
+<div class="terminal"><span class="prompt">$</span> git clone https://github.com\
+    /DubovskiyIM/fold-runtime-quickstart
+<span class="prompt">$</span> cd fold-runtime-quickstart
+<span class="prompt">$</span> npm install
+<span class="prompt">$</span> IDF_REPO=$HOME/...idf \
+    npm run bootstrap</div>
       </div>
 
-      <div class="step">
-        <div class="step-head">
-          <span class="step-num">3</span>
-          <span class="step-title">Run the WOW demo</span>
-        </div>
-<pre>npm run demo:rogue
-<span class="c"># → 403 with structured rejection</span>
-npm run demo:grant
-<span class="c"># → investor issues $1K cap</span>
-npm run demo:smart
-<span class="c"># → agent scales → 200 OK</span></pre>
+      <div class="cell">
+        <div class="step-num">03</div>
+        <div class="step-title">Run the WOW demo</div>
+<div class="terminal"><span class="prompt">$</span> npm run demo:rogue
+<span class="cmt"># → 403 with structured rejection</span>
+<span class="prompt">$</span> npm run demo:grant
+<span class="cmt"># → investor issues $1K cap</span>
+<span class="prompt">$</span> npm run demo:smart
+<span class="cmt"># → agent scales → 200 OK</span></div>
       </div>
+
     </div>
-
-    <p style="margin-top: 24px; color:var(--muted); font-size:14px;">
-      That&rsquo;s it. <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart">Full quickstart README →</a>
+    <p style="margin-top: 24px; color:var(--ink-mid); font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em;">
+      <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart">full quickstart readme →</a>
     </p>
-  </div>
-</section>
+  </section>
 
-<!-- ============================================================ -->
-<!-- WHO IS THIS FOR                                              -->
-<!-- ============================================================ -->
-<section class="who">
-  <div class="container">
-    <h2>Who is this for</h2>
+  <!-- ============================================================ -->
+  <!-- WHO IS THIS FOR                                               -->
+  <!-- ============================================================ -->
+  <div class="who">
+    <div class="eyebrow" style="margin-bottom:14px;">Who is this for</div>
     <p>
-      You&rsquo;re an AI engineer who&rsquo;s past the &ldquo;agent demo in a Jupyter notebook&rdquo; phase. Your agent is going to touch a real system soon. You&rsquo;ve read the PocketOS post-mortem, the Amazon Kiro 13-hour outage write-up, the Cursor-deletes-Replit-database thread. You don&rsquo;t want guardrails. You want <b>the system itself to refuse the wrong action.</b>
+      You&rsquo;re an AI engineer who&rsquo;s past the <em>agent demo in a Jupyter notebook</em> phase. Your agent is going to touch a real system soon. You&rsquo;ve read the PocketOS post-mortem, the Amazon Kiro 13-hour outage write-up, the Cursor-deletes-Replit-database thread. You don&rsquo;t want guardrails. You want <span style="color: var(--accent);">the system itself to refuse the wrong action.</span>
     </p>
     <p style="margin-top: 12px;">This is for you.</p>
     <p class="not-for">
       If you&rsquo;re trying to build &ldquo;a chatbot that summarises PDFs,&rdquo; this isn&rsquo;t that. Try LangChain, Vercel AI SDK, or Anthropic&rsquo;s SDK directly.
     </p>
   </div>
-</section>
 
-<!-- ============================================================ -->
-<!-- FINAL CTA                                                    -->
-<!-- ============================================================ -->
-<section class="final-cta">
-  <div class="container">
+  <!-- ============================================================ -->
+  <!-- FINAL CTA                                                     -->
+  <!-- ============================================================ -->
+  <div class="final-cta">
     <h2>Open source. <code>npm install</code>. No waitlist.</h2>
-    <p>BSL 1.1 on the runtime, MIT on mcp-server, quickstart, importers. Use it on your own machine, in your own stack, on your own clock.</p>
+    <p class="subline">BSL 1.1 on the runtime, MIT on mcp-server, quickstart, importers. Use it on your own machine, in your own stack, on your own clock.</p>
     <div class="cta-row">
-      <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart" class="btn btn-primary">Read the quickstart →</a>
-      <a href="https://github.com/DubovskiyIM/idf-mcp" class="btn btn-secondary">Star the runtime</a>
-      <a href="mailto:dubovskiy.im@gmail.com" class="btn btn-secondary">Talk to me</a>
+      <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart" class="btn-primary">
+        read the quickstart <span class="arr">→</span>
+      </a>
+      <a href="https://github.com/DubovskiyIM/idf-mcp" class="btn-ghost">star the runtime</a>
+      <a href="mailto:dubovskiy.im@gmail.com" class="btn-ghost">talk to me</a>
     </div>
   </div>
-</section>
+
+</main>
 
 <!-- ============================================================ -->
-<!-- FOOTER                                                       -->
+<!-- FOOTER                                                        -->
 <!-- ============================================================ -->
 <footer>
-  <div class="container">
-    <div class="col-link">
-      <h4>Code</h4>
-      <a href="https://github.com/DubovskiyIM/idf">github.com/DubovskiyIM/idf</a>
-      <a href="https://github.com/DubovskiyIM/idf-mcp">github.com/DubovskiyIM/idf-mcp</a>
-      <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart">github.com/DubovskiyIM/fold-runtime-quickstart</a>
-    </div>
-    <div class="col-link">
-      <h4>Spec</h4>
-      <a href="https://github.com/DubovskiyIM/idf/blob/main/docs/manifesto-v2.md">Manifesto v2 — IDF as a data type</a>
-      <a href="https://www.npmjs.com/package/@intent-driven/mcp-server">npm: @intent-driven/mcp-server</a>
-    </div>
-    <div class="col-link">
-      <h4>Author</h4>
-      <a href="mailto:dubovskiy.im@gmail.com">dubovskiy.im@gmail.com</a>
-      <a href="https://github.com/DubovskiyIM">github.com/DubovskiyIM</a>
-    </div>
-    <div class="meta">
-      License: BSL 1.1 (core/runtime), MIT (mcp-server, importers, quickstart). Built by Ignat Dubovsky. © 2026.
-    </div>
-  </div>
+  <span>© Fold · 2026 · built by <a href="https://github.com/DubovskiyIM">@DubovskiyIM</a></span>
+  <span class="links">
+    <a href="https://github.com/DubovskiyIM/idf">idf</a>
+    <a href="https://github.com/DubovskiyIM/idf-mcp">idf-mcp</a>
+    <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart">quickstart</a>
+    <a href="https://github.com/DubovskiyIM/idf/blob/main/docs/manifesto-v2.md">format spec</a>
+    <a href="mailto:dubovskiy.im@gmail.com">contact</a>
+  </span>
 </footer>
 
 </body>
