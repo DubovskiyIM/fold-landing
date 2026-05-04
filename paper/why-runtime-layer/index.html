@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why we built the runtime layer between AI agents and your domain — Fold</title>
+
+<meta name="description" content="Long-form essay: agents don't fail because they're stupid. They fail because the systems they touch never tell them what's allowed. A runtime layer that does — declarative, structured, irreversibility-aware.">
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why we built the runtime layer between AI agents and your domain">
+<meta property="og:description" content="Agents don't fail because they're stupid. They fail because the systems they touch never tell them what's allowed.">
+<meta property="og:image" content="https://fold.intent-design.tech/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://fold.intent-design.tech/paper/why-runtime-layer/">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why we built the runtime layer between AI agents and your domain">
+<meta name="twitter:description" content="Agents don't fail because they're stupid. They fail because the systems they touch never tell them what's allowed.">
+<meta name="twitter:image" content="https://fold.intent-design.tech/og-image.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #14120f;
+    --paper-dim: #1b1916;
+    --paper-bright: #0e0c0a;
+    --ink: #f0ebdf;
+    --ink-dim: #a7a295;
+    --ink-mid: #6a675f;
+    --rule: #2a2721;
+    --rule-dim: #221f1a;
+    --accent: #7a8eb8;
+    --accent-bg: rgba(122, 142, 184, 0.10);
+    --ok: #6fbf7f;
+    --warn: #d4a24c;
+    --danger: #e07777;
+
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+    --text-col: 680px;
+
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  a:hover { text-decoration-thickness: 2px; }
+  ::selection { background: var(--accent); color: var(--paper); }
+
+  /* Masthead */
+  header.masthead {
+    border-bottom: 1px solid var(--rule);
+    padding: 18px 0;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+  }
+  header.masthead .nav-inner {
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  header.masthead .brand-name { font-size: 18px; color: var(--ink); margin-right: 6px; }
+  header.masthead .brand-block { display: flex; align-items: baseline; gap: 14px; }
+  header.masthead nav.links { display: flex; gap: 20px; }
+  header.masthead nav.links a { color: var(--ink-dim); text-decoration: none; }
+  header.masthead nav.links a:hover { color: var(--ink); }
+  header.masthead .dot { color: var(--rule); }
+
+  /* Article container */
+  article {
+    max-width: var(--text-col);
+    margin: 0 auto;
+    padding: 80px 28px 120px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin-bottom: 28px;
+  }
+  .eyebrow .accent { color: var(--accent); }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(2.2rem, 4.4vw, 3.2rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    margin-bottom: 20px;
+    font-variation-settings: '"opsz" 144';
+  }
+  h1 em { color: var(--accent); font-style: italic; }
+
+  .deck {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+
+  .byline {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink-mid);
+    margin-bottom: 56px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .byline a { color: var(--ink-mid); text-decoration: none; border-bottom: 1px dotted var(--ink-mid); }
+  .byline a:hover { color: var(--ink); }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.7rem;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    margin: 56px 0 16px;
+  }
+
+  h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.25rem;
+    line-height: 1.25;
+    margin: 36px 0 10px;
+  }
+
+  p { margin: 0 0 22px; }
+
+  p.lede {
+    font-size: 1.2rem;
+    line-height: 1.55;
+  }
+
+  blockquote {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.1rem;
+    line-height: 1.55;
+    color: var(--ink);
+    margin: 28px 0;
+    padding: 0 0 0 24px;
+    border-left: 3px solid var(--accent);
+  }
+  blockquote cite {
+    display: block;
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-mid);
+    margin-top: 14px;
+    text-transform: uppercase;
+  }
+  blockquote cite a {
+    color: var(--ink-mid);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--ink-mid);
+  }
+  blockquote cite a:hover { color: var(--ink); }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.55;
+    background: var(--paper-bright);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 18px 22px;
+    overflow-x: auto;
+    margin: 24px 0;
+    color: var(--ink-dim);
+  }
+  pre .kw { color: var(--accent); }
+  pre .str { color: var(--ok); }
+  pre .num { color: var(--warn); }
+  pre .err { color: var(--danger); font-weight: 500; }
+  pre .ok { color: var(--ok); font-weight: 500; }
+  pre .cmt { color: var(--ink-mid); }
+  pre .ink { color: var(--ink); }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--paper-dim);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  ul, ol { margin: 0 0 22px; padding-left: 28px; }
+  li { margin: 6px 0; }
+  li::marker { color: var(--ink-mid); }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 56px 0;
+  }
+
+  .endnote {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink-mid);
+    line-height: 1.55;
+    border-top: 1px solid var(--rule);
+    padding-top: 28px;
+    margin-top: 56px;
+  }
+  .endnote a { color: var(--ink-mid); text-decoration: none; border-bottom: 1px dotted var(--ink-mid); }
+  .endnote a:hover { color: var(--ink); }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 28px 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: var(--ink-mid);
+  }
+  footer .footer-inner {
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  footer a { color: var(--ink-mid); text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+  footer .links { display: flex; gap: 18px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="nav-inner">
+    <div class="brand-block">
+      <a href="https://fold.intent-design.tech/" style="color: var(--ink); text-decoration: none;">
+        <span class="brand-name">Fold</span>
+      </a>
+      <span class="dot">·</span>
+      <span>paper</span>
+    </div>
+    <nav class="links">
+      <a href="https://fold.intent-design.tech/">landing</a>
+      <a href="https://github.com/intent-driven-software/fold-runtime-quickstart">quickstart</a>
+      <a href="https://github.com/intent-driven-software/idf-mcp">github</a>
+      <a href="https://www.npmjs.com/package/@intent-driven/mcp-server">npm</a>
+    </nav>
+  </div>
+</header>
+
+<article>
+
+  <div class="eyebrow"><span class="accent">paper</span> · 2026-05-04 · ~10 min read</div>
+
+  <h1>Why we built the runtime layer between AI agents and <em>your domain</em></h1>
+
+  <p class="deck">
+    Agents don&rsquo;t fail because they&rsquo;re stupid. They fail because the systems they touch never tell them what&rsquo;s allowed, why something shouldn&rsquo;t happen, or what the consequences are. This is a paper about what the missing layer looks like &mdash; and why we put it on npm.
+  </p>
+
+  <div class="byline">
+    Ignat Dubovsky · <a href="https://github.com/DubovskiyIM">@DubovskiyIM</a> · <a href="mailto:dubovskiy.im@gmail.com">dubovskiy.im@gmail.com</a>
+  </div>
+
+  <p class="lede">
+    On April 25 2026 a Cursor agent powered by Claude Opus 4.6 was asked to clean up some staging data. It hit a credential mismatch, found an unrelated API token with too much scope, decided to delete a Railway volume to fix things, and wiped a production database <em>and all volume-level backups</em> in nine seconds.
+  </p>
+
+  <blockquote>
+    &ldquo;I guessed that deleting a staging volume via the API would be scoped to staging only. I didn&rsquo;t verify. I didn&rsquo;t check if the volume ID was shared across environments.&rdquo;
+    <cite>
+      &mdash; the Cursor agent&rsquo;s own post-mortem to PocketOS founder Jer Crane,
+      <a href="https://www.theregister.com/2026/04/27/cursoropus_agent_snuffs_out_pocketos/" target="_blank" rel="noopener">via The Register</a>
+    </cite>
+  </blockquote>
+
+  <p>
+    The post-mortem is striking because the agent diagnosed itself accurately. It didn&rsquo;t hallucinate. It didn&rsquo;t fail at instruction-following. It executed exactly what an agent in front of a raw API would execute: it looked at the tools available to it, formed a plausible plan, and ran the plan. The system answered with HTTP 200. By the time anyone could intervene, PocketOS had a 30-hour outage and was rolling back to a three-month-old backup.
+  </p>
+
+  <p>
+    The same week, Amazon&rsquo;s internal Kiro agent took out a production environment in their China region for thirteen hours. The same month, Replit&rsquo;s AI agent rewrote a customer&rsquo;s database. Across all three incidents, the agent did exactly what its tools allowed and the system answered every illegal action with either a 500 or a 200. None of them ever answered with <em>&ldquo;no, here&rsquo;s why.&rdquo;</em>
+  </p>
+
+  <p>
+    This isn&rsquo;t an alignment failure. The model didn&rsquo;t need to know better &mdash; the model behaved within its design. The system the model touched never told it what was allowed, why it shouldn&rsquo;t, or what would happen if it tried. That gap, sitting between an agent that wants to act and a system that hasn&rsquo;t been written to refuse, is the thing we built a runtime layer for.
+  </p>
+
+  <h2>The three layers that already exist</h2>
+
+  <p>
+    There&rsquo;s no shortage of agent infrastructure in 2026. Three layers already exist, each solving a real piece of the problem:
+  </p>
+
+  <p>
+    <strong>Frameworks</strong> &mdash; LangChain, CrewAI, Mastra, AutoGen, Vercel AI SDK &mdash; tell the agent <em>how to think</em>. They orchestrate prompts, manage memory, route tool calls, support multi-agent crews. They are necessary but they don&rsquo;t describe the world the agent acts in.
+  </p>
+
+  <p>
+    <strong>Authorization</strong> &mdash; Permit.io, Okta for AI Agents, Cerbos, Auth0 FGA &mdash; tell the system <em>who the agent is</em>. They enforce role-based access, attribute-based policies, scoped tokens. Necessary, but they answer the wrong granularity: who, not what-allowed-in-this-business.
+  </p>
+
+  <p>
+    <strong>Guardrails</strong> &mdash; Lakera, NeMo Guardrails, Lasso &mdash; filter <em>what the agent says</em>. Probabilistic, post-hoc, output-side. They catch obvious prompt-injection or PII leaks. They don&rsquo;t catch <em>action-side</em> mistakes &mdash; an agent that politely says &ldquo;I will now delete this volume&rdquo; passes every guardrail and ends in the same 30-hour outage.
+  </p>
+
+  <p>
+    Stack all three, and you have an agent who knows how to think, identifies itself correctly, says nothing offensive &mdash; and still wires fifty thousand dollars where it shouldn&rsquo;t, because the system answered with HTTP 200.
+  </p>
+
+  <h2>The missing layer</h2>
+
+  <p>
+    The missing layer answers a different question: <em>what can the agent do in <strong>this specific business</strong>, and why should something that looks plausible be refused?</em>
+  </p>
+
+  <p>
+    That question can&rsquo;t be answered by adding rules to the agent. It has to be answered by the system the agent touches &mdash; declaratively, before the action happens, in a way the agent can read. Concretely, that means three properties.
+  </p>
+
+  <h3>1. The domain has a typed shape, declared once</h3>
+
+  <p>
+    Entities, intents (the atomic actions an agent or human can perform), invariants (what must always hold across the data), role scopes (what each role can read and call), irreversibility points (what can never be undone). Together that&rsquo;s an artifact &mdash; not a runtime, not a framework, a typed description of the application like OpenAPI but two levels denser. The runtime interprets that artifact. The artifact is the source of truth for everything else &mdash; the UI, the agent API, the document export, the audit log.
+  </p>
+
+  <p>
+    This isn&rsquo;t a new idea. Domain-driven design has been describing this for fifteen years. What&rsquo;s new is that, in 2026, the agent is the <em>primary consumer</em> of the description, not a side effect. Every other reader &mdash; the UI, the voice interface, the document materialiser &mdash; gets the same information. Add a new role tomorrow, every reader sees it.
+  </p>
+
+  <h3>2. Rejections are structured, not strings</h3>
+
+  <p>
+    When an agent tries something illegal, the system doesn&rsquo;t answer with HTTP 500 or a string error. It answers with a JSON shape:
+  </p>
+
+<pre><span class="ink">{</span>
+  <span class="kw">"error"</span><span class="ink">:</span>    <span class="err">"preapproval_denied"</span><span class="ink">,</span>
+  <span class="kw">"intentId"</span><span class="ink">:</span> <span class="str">"agent_execute_preapproved_order"</span><span class="ink">,</span>
+  <span class="kw">"reason"</span><span class="ink">:</span>   <span class="str">"no_preapproval"</span><span class="ink">,</span>
+  <span class="kw">"failedCheck"</span><span class="ink">:</span> <span class="str">"maxOrderAmount"</span><span class="ink">,</span>
+  <span class="kw">"details"</span><span class="ink">: {</span>
+    <span class="kw">"entity"</span><span class="ink">:</span>      <span class="str">"AgentPreapproval"</span><span class="ink">,</span>
+    <span class="kw">"ownerField"</span><span class="ink">:</span>  <span class="str">"userId"</span><span class="ink">,</span>
+    <span class="kw">"viewerId"</span><span class="ink">:</span>    <span class="str">"user_5f57c252"</span>
+  <span class="ink">}</span>
+<span class="ink">}</span></pre>
+
+  <p>
+    The agent reads this. It can reason about the structure. It can correct the strategy. The next move for any sane agent is to stop, ask for the missing preapproval, and retry &mdash; not retry blindly until something passes. A well-shaped 403 is a teacher; a 500 is a wall.
+  </p>
+
+  <p>
+    Frameworks won&rsquo;t add this for you. The system you ship has to do it. Once you author the domain artifact, you get this for free across every intent, because the runtime interprets the artifact and produces the rejection.
+  </p>
+
+  <h3>3. Irreversibility is a primitive, not a guardrail</h3>
+
+  <p>
+    Some actions, after they confirm, can&rsquo;t be undone. Money sent. Backup deleted. Customer notified. Pixels rendered to a contract.
+  </p>
+
+  <p>
+    Most systems treat irreversibility as a quality of UX &mdash; show a confirm dialog, log to an audit trail, hope. We treat it as a property of the effect itself. An effect can carry <code>__irr.point=&quot;high&quot;</code> in its context, and the runtime then refuses any subsequent <code>α:remove</code> on the entity that effect created, by construction. Forward-correction is the only path. The Cursor-style &ldquo;agent decided to delete production&rdquo; becomes <em>unreachable</em> for those points &mdash; not because we filtered the language, but because the data can&rsquo;t leave that state.
+  </p>
+
+  <p>
+    This is the difference between a guardrail that <em>discourages</em> a bad action and a runtime contract that <em>structurally prevents</em> it.
+  </p>
+
+  <h2>What this looks like in practice</h2>
+
+  <p>
+    We packaged the runtime as <code>@intent-driven/mcp-server</code> on npm and a Docker quickstart. It runs locally in two commands, against a real demo domain &mdash; <code>invest</code>, fourteen entities, sixty-one intents, five invariants, a seven-check preapproval guard.
+  </p>
+
+  <p>
+    The three-act demo is short and concrete. <em>Act&nbsp;one</em>: an agent submits a fifty-thousand-dollar BTC long without preapproval. The runtime intercepts before any effect lands in storage. HTTP 403. Structured rejection. The agent didn&rsquo;t have a preapproval row in the world; the runtime tells it exactly that. <em>Act&nbsp;two</em>: a human, acting as the investor role, issues a thousand-dollar-cap preapproval through one declarative effect. No new endpoint, no middleware change &mdash; the intent <code>delegate_to_agent</code> is part of the same artifact the agent reads. <em>Act&nbsp;three</em>: the same agent now reads its own cap, scales the order from fifty thousand down to nine-fifty, executes. HTTP 200.
+  </p>
+
+  <p>
+    The agent didn&rsquo;t bump into a wall. It read the wall and walked around it. None of this was special agent code. The agent reads <code>ontology.roles.agent.preapproval</code> the same way it reads tool descriptions &mdash; through a declarative artifact authored once and consumed by every reader.
+  </p>
+
+  <h2>What it isn&rsquo;t</h2>
+
+  <p>
+    A few things this layer is not, because the launch reception will ask:
+  </p>
+
+  <p>
+    It&rsquo;s not a framework replacement. LangChain, CrewAI, Mastra still describe how the agent thinks. We describe what the agent inhabits. They compose; you can ship LangChain agents on top of a Fold runtime tomorrow.
+  </p>
+
+  <p>
+    It&rsquo;s not authorization. Permit.io, Cerbos, Auth0 FGA still answer who the agent is and what they can call at the API edge. Fold answers the next question: given that this agent is allowed to call this intent, what would actually happen and why is this particular call illegal. Authz is one of six layers we sit on top of.
+  </p>
+
+  <p>
+    It&rsquo;s not a guardrail in the Lakera / NeMo sense. We don&rsquo;t filter the agent&rsquo;s output. We filter the world&rsquo;s response &mdash; in the form of structured rejections that flow back. Output filtering is downstream of language models; runtime contracts are upstream of effects.
+  </p>
+
+  <p>
+    It&rsquo;s not low-code. The artifact is dense, and authoring a domain takes thought. What it gives in return is that one artifact powers four readers &mdash; the UI for humans, the voice interface, the agent API, and the document materialiser &mdash; all from the same source.
+  </p>
+
+  <h2>Where it could break</h2>
+
+  <p>
+    Honest open issues, because launch-day skepticism deserves honest answers:
+  </p>
+
+  <p>
+    <strong>Authoring overhead.</strong> Writing an IDF artifact is harder than starting a Next.js project from a template. We have importers from Postgres, OpenAPI and Prisma, and an AI-driven enricher, but cold-start authorship is still real work. The bet is that artifact density beats code density once the system is past trivial CRUD.
+  </p>
+
+  <p>
+    <strong>Runtime cost.</strong> Φ &mdash; the typed event log we store every effect in &mdash; grows linearly with operations. We have a fold function that&rsquo;s incremental, and schema-versioning v2 with upcaster fold and drift detector, but very large domains haven&rsquo;t been stress-tested at production scale. The reference domains are seventeen, with up to two hundred fifty intents each; that&rsquo;s the load envelope we&rsquo;ve hit.
+  </p>
+
+  <p>
+    <strong>Adoption gravity.</strong> The closest things that exist &mdash; declarative-MCP-from-spec generators like Stainless or Speakeasy, or the deeper philosophical neighbours like Tessl and AWS Kiro &mdash; describe their input as OpenAPI or Markdown. We declare more (invariants, irreversibility, role scopes) and that&rsquo;s the differentiation, but it&rsquo;s also a higher cliff to climb. We chose to climb it.
+  </p>
+
+  <h2>The format, the runtime, the launch</h2>
+
+  <p>
+    Two-and-a-bit years ago we started building a format that describes an application at the level above OpenAPI &mdash; not just endpoints and types, but intents, invariants, role scopes, irreversibility, lifecycle. We did it because we were authoring a lot of repetitive code in domains with similar shape, and we got tired of the same five layers per app being slightly different in every codebase.
+  </p>
+
+  <p>
+    Then agents arrived. And the answer to <em>&ldquo;what does an agent need to safely act in a real system?&rdquo;</em> turned out to overlap almost completely with the answer to <em>&ldquo;what does a typed application description need to be a single source of truth?&rdquo;</em> Every property the agent needs &mdash; the why a call would fail, the limit, the irreversibility &mdash; was already in the artifact, just unexposed.
+  </p>
+
+  <p>
+    Today the runtime ships as <code>@intent-driven/mcp-server@1.0.1</code> on npm, with provenance signed via Sigstore. The quickstart is two commands. The reference domains are public. The format spec is open. The license is BSL 1.1 on core, MIT on everything else &mdash; you can run it on your laptop, in your stack, on your clock.
+  </p>
+
+  <p>
+    The PocketOS post-mortem ended with the agent saying it didn&rsquo;t verify and didn&rsquo;t check. That&rsquo;s a true statement about the agent. It&rsquo;s also a true statement about what every system the agent touched gave it permission to do. The answer to the post-mortem isn&rsquo;t a smarter agent. The answer is a system that says no, with reasons, before the database is gone.
+  </p>
+
+  <p>
+    Stop giving AI agents API keys. Give them a domain. Then watch what happens when the domain says no first.
+  </p>
+
+  <hr>
+
+  <p style="text-align: center; font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; color: var(--ink-mid);">
+    <a href="https://github.com/intent-driven-software/fold-runtime-quickstart">→ run the demo (2 commands)</a>
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    <a href="https://www.loom.com/share/2ca4a40e3b9245feb86a74a998e42cb8">→ 75-sec walkthrough</a>
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    <a href="https://github.com/intent-driven-software/idf-mcp">→ source on GitHub</a>
+  </p>
+
+  <div class="endnote">
+    <strong style="color: var(--ink);">References &amp; further reading</strong><br><br>
+    PocketOS incident reporting:
+    <a href="https://www.theregister.com/2026/04/27/cursoropus_agent_snuffs_out_pocketos/" target="_blank" rel="noopener">The Register</a>,
+    <a href="https://www.fastcompany.com/91533544/cursor-claude-ai-agent-deleted-software-company-pocket-os-database-jer-crane" target="_blank" rel="noopener">FastCompany</a>,
+    <a href="https://oecd.ai/en/incidents/2026-04-27-6153" target="_blank" rel="noopener">OECD AI Incident #6153</a>.<br><br>
+
+    Adjacent stacks discussed:
+    <a href="https://www.langchain.com/" target="_blank" rel="noopener">LangChain</a>,
+    <a href="https://www.crewai.com/" target="_blank" rel="noopener">CrewAI</a>,
+    <a href="https://mastra.ai/" target="_blank" rel="noopener">Mastra</a>,
+    <a href="https://www.permit.io/" target="_blank" rel="noopener">Permit.io</a>,
+    <a href="https://www.cerbos.dev/" target="_blank" rel="noopener">Cerbos</a>,
+    <a href="https://www.lakera.ai/" target="_blank" rel="noopener">Lakera</a>,
+    <a href="https://github.com/NVIDIA-NeMo/Guardrails" target="_blank" rel="noopener">NeMo Guardrails</a>.<br><br>
+
+    The format itself: <a href="https://github.com/DubovskiyIM/idf/blob/main/docs/manifesto-v2.md" target="_blank" rel="noopener">IDF Manifesto v2</a> &mdash; eight parts, the timeless description of what the artifact actually is. Not required reading; the runtime stands on its own.
+  </div>
+
+</article>
+
+<footer>
+  <div class="footer-inner">
+    <span>© Fold · 2026 · built by <a href="https://github.com/DubovskiyIM">@DubovskiyIM</a></span>
+    <span class="links">
+      <a href="https://fold.intent-design.tech/">landing</a>
+      <a href="https://github.com/intent-driven-software/fold-runtime-quickstart">quickstart</a>
+      <a href="https://github.com/intent-driven-software/idf-mcp">idf-mcp</a>
+      <a href="mailto:dubovskiy.im@gmail.com">contact</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
