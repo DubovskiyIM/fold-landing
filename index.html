@@ -44,6 +44,12 @@
     --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
 
+    /* Editorial text column — единая ширина reading-параграфов через
+       весь документ. Headings + leads + quotes + copy → все 680px.
+       Грид-блоки и terminals остаются full-main (= --content-col). */
+    --text-col: 680px;
+    --content-col: 884px; /* main 980px − padding 48*2 */
+
     color-scheme: dark;
   }
 
@@ -173,7 +179,7 @@
     font-family: var(--serif);
     font-size: clamp(1.05rem, 1.65vw, 1.3rem);
     line-height: 1.5;
-    max-width: 640px;
+    max-width: var(--text-col);
     color: var(--ink);
     margin-bottom: 48px;
   }
@@ -224,15 +230,19 @@
     font-size: 11px;
     color: var(--ink-mid);
     letter-spacing: 0.04em;
+    max-width: var(--text-col);
   }
   .micro-meta a { color: var(--ink-mid); }
 
   /* ===== Incident block ===== */
+  /* Inset-блок без horizontal padding — текст внутри держит ту же
+     левую границу, что headings/leads секций. Border-left становится
+     accent-маркером без сдвига reading column. */
   .incident {
     margin-top: 96px;
-    padding: 36px 32px;
+    padding: 36px 0 36px 28px;
     border: 1px solid var(--rule);
-    border-left: 2px solid var(--accent);
+    border-left: 3px solid var(--accent);
     background: var(--paper-bright);
   }
   .incident .quote {
@@ -241,7 +251,8 @@
     font-size: clamp(1.1rem, 1.5vw, 1.35rem);
     line-height: 1.5;
     color: var(--ink);
-    max-width: 720px;
+    max-width: var(--text-col);
+    padding-right: 28px;
   }
   .incident .quote .em-warn {
     font-style: normal;
@@ -255,6 +266,7 @@
     letter-spacing: 0.04em;
     color: var(--ink-mid);
     margin-top: 18px;
+    padding-right: 28px;
     text-transform: uppercase;
   }
   .incident cite a {
@@ -282,7 +294,7 @@
     font-size: 1.05rem;
     line-height: 1.5;
     color: var(--ink-dim);
-    max-width: 720px;
+    max-width: var(--text-col);
     margin-bottom: 36px;
   }
 
@@ -378,6 +390,19 @@
     margin: 24px 0 8px;
   }
   .demo-caption:first-child { margin-top: 0; }
+
+  .demo-coda {
+    margin-top: 28px;
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    color: var(--ink-dim);
+    line-height: 1.55;
+    max-width: var(--text-col);
+  }
+  .demo-coda em {
+    color: var(--ink);
+    font-style: italic;
+  }
 
   /* ===== Compare table ===== */
   .compare-wrap { overflow-x: auto; }
@@ -485,8 +510,9 @@
   /* ===== Who section ===== */
   .who {
     margin-top: 96px;
-    padding: 36px 32px;
+    padding: 36px 0 36px 28px;
     border: 1px solid var(--rule);
+    border-left: 3px solid var(--rule);
     background: var(--paper-bright);
   }
   .who p {
@@ -494,7 +520,8 @@
     font-size: clamp(1rem, 1.4vw, 1.2rem);
     line-height: 1.55;
     color: var(--ink);
-    max-width: 720px;
+    max-width: var(--text-col);
+    padding-right: 28px;
     margin-bottom: 14px;
   }
   .who p.not-for {
@@ -505,18 +532,21 @@
   }
 
   /* ===== Final CTA ===== */
+  /* Left-aligned, та же reading column — финальный аккорд держит
+     общий ритм страницы, без center-text break'а. */
   .final-cta {
     margin-top: 96px;
-    padding: 64px 32px;
+    padding: 56px 28px 56px 28px;
     border: 1px solid var(--rule);
-    text-align: center;
+    border-left: 3px solid var(--accent);
   }
   .final-cta h2 {
     font-family: var(--serif);
     font-weight: 500;
-    font-size: clamp(1.6rem, 2.6vw, 2.2rem);
-    margin-bottom: 12px;
+    font-size: clamp(1.6rem, 2.6vw, 2.0rem);
+    margin-bottom: 14px;
     color: var(--ink);
+    max-width: var(--text-col);
   }
   .final-cta h2 code {
     font-size: 0.85em;
@@ -526,12 +556,11 @@
   }
   .final-cta .subline {
     color: var(--ink-dim);
-    max-width: 560px;
-    margin: 0 auto 28px;
-    font-size: 14.5px;
-  }
-  .final-cta .cta-row {
-    justify-content: center;
+    max-width: var(--text-col);
+    margin-bottom: 28px;
+    font-size: 15px;
+    line-height: 1.55;
+    font-family: var(--serif);
   }
 
 </style>
@@ -681,7 +710,7 @@
     <span class="ink">}</span>
   <span class="ink">}</span></div>
 
-    <p style="margin-top: 28px; font-family: var(--serif); font-size: 1.05rem; color: var(--ink-dim); line-height: 1.55; max-width: 720px;">
+    <p class="demo-coda">
       Without Fold: a <code>200&nbsp;OK</code>. Position created. $50,000 of someone else&rsquo;s money moved before any human saw it.<br>
       With Fold: the runtime rejected the call <em>declaratively</em>, with a structured <code>failedCheck</code> the agent can reason about. <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart#act-3--smart-agent-reads-the-limit-scales-down-executes">See Act 3 →</a>
     </p>
