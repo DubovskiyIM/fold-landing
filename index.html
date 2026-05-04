@@ -99,16 +99,10 @@
 
   /* ===== Header / footer mono ===== */
   header.masthead, footer {
-    padding: 18px 48px;
     font-family: var(--mono);
     font-size: 11.5px;
     letter-spacing: 0.04em;
     color: var(--ink-dim);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
   }
   header.masthead { border-bottom: 1px solid var(--rule); }
   header.masthead .brand-block {
@@ -140,12 +134,32 @@
   footer a:hover { color: var(--ink); }
   footer .links { display: flex; gap: 18px; flex-wrap: wrap; }
 
-  /* ===== Layout ===== */
+  /* ===== Layout =====
+     main центрируется на широких экранах. На вертикали остаётся
+     editorial column (text-col + content-col), описанная выше. */
   main {
     max-width: 980px;
     width: 100%;
     margin: 0 auto;
     padding: 80px 48px 120px;
+  }
+
+  /* Masthead/footer container shrink ровно к ширине main, чтобы
+     навигация не расползалась на 4K-мониторах. */
+  header.masthead, footer {
+    padding: 18px 0;
+  }
+  header.masthead .nav-inner,
+  footer .footer-inner {
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
   }
 
   /* ===== Eyebrow ===== */
@@ -571,20 +585,22 @@
 <!-- MASTHEAD                                                      -->
 <!-- ============================================================ -->
 <header class="masthead">
-  <div class="brand-block">
-    <span class="brand-name">Fold</span>
-    <span class="dot">·</span>
-    <span>domain runtime for AI agents</span>
-    <span class="dot">·</span>
-    <span>v1.0.0</span>
+  <div class="nav-inner">
+    <div class="brand-block">
+      <span class="brand-name">Fold</span>
+      <span class="dot">·</span>
+      <span>domain runtime for AI agents</span>
+      <span class="dot">·</span>
+      <span>v1.0.0</span>
+    </div>
+    <nav class="links">
+      <a href="#what">what</a>
+      <a href="#compare">compare</a>
+      <a href="#quickstart">quickstart</a>
+      <a href="https://github.com/DubovskiyIM/idf-mcp">github</a>
+      <a href="https://www.npmjs.com/package/@intent-driven/mcp-server">npm</a>
+    </nav>
   </div>
-  <nav class="links">
-    <a href="#what">what</a>
-    <a href="#compare">compare</a>
-    <a href="#quickstart">quickstart</a>
-    <a href="https://github.com/DubovskiyIM/idf-mcp">github</a>
-    <a href="https://www.npmjs.com/package/@intent-driven/mcp-server">npm</a>
-  </nav>
 </header>
 
 <!-- ============================================================ -->
@@ -863,14 +879,16 @@
 <!-- FOOTER                                                        -->
 <!-- ============================================================ -->
 <footer>
-  <span>© Fold · 2026 · built by <a href="https://github.com/DubovskiyIM">@DubovskiyIM</a></span>
-  <span class="links">
-    <a href="https://github.com/DubovskiyIM/idf">idf</a>
-    <a href="https://github.com/DubovskiyIM/idf-mcp">idf-mcp</a>
-    <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart">quickstart</a>
-    <a href="https://github.com/DubovskiyIM/idf/blob/main/docs/manifesto-v2.md">format spec</a>
-    <a href="mailto:dubovskiy.im@gmail.com">contact</a>
-  </span>
+  <div class="footer-inner">
+    <span>© Fold · 2026 · built by <a href="https://github.com/DubovskiyIM">@DubovskiyIM</a></span>
+    <span class="links">
+      <a href="https://github.com/DubovskiyIM/idf">idf</a>
+      <a href="https://github.com/DubovskiyIM/idf-mcp">idf-mcp</a>
+      <a href="https://github.com/DubovskiyIM/fold-runtime-quickstart">quickstart</a>
+      <a href="https://github.com/DubovskiyIM/idf/blob/main/docs/manifesto-v2.md">format spec</a>
+      <a href="mailto:dubovskiy.im@gmail.com">contact</a>
+    </span>
+  </div>
 </footer>
 
 </body>
