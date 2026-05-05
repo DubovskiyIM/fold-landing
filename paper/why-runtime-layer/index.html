@@ -318,11 +318,11 @@
   </blockquote>
 
   <p>
-    The post-mortem is striking because the agent diagnosed itself accurately. It didn&rsquo;t hallucinate. It didn&rsquo;t fail at instruction-following. It executed exactly what an agent in front of a raw API would execute: it looked at the tools available to it, formed a plausible plan, and ran the plan. The system answered with HTTP 200. By the time anyone could intervene, PocketOS had a 30-hour outage and was rolling back to a three-month-old backup.
+    What&rsquo;s striking about the post-mortem is the diagnosis. There&rsquo;s no hallucination here, no instruction-follow failure. The agent did what an agent in front of a raw API does &mdash; it looked at the tools it had, picked a plan that seemed to fit, and ran the plan. The system answered with HTTP 200. By the time anyone noticed, PocketOS had a 30-hour outage and a three-month-old backup to roll back to.
   </p>
 
   <p>
-    The same week, Amazon&rsquo;s internal Kiro agent took out a production environment in their China region for thirteen hours. The same month, Replit&rsquo;s AI agent rewrote a customer&rsquo;s database. Across all three incidents, the agent did exactly what its tools allowed and the system answered every illegal action with either a 500 or a 200. None of them ever answered with <em>&ldquo;no, here&rsquo;s why.&rdquo;</em>
+    Same week, Amazon&rsquo;s internal Kiro agent wiped a production environment in the China region for thirteen hours. Same month, Replit&rsquo;s AI agent rewrote a customer&rsquo;s database. Three incidents, same shape: the agent did what its tools permitted, and the system answered every illegal action with a 500 or a 200. Nobody ever said <em>&ldquo;no, here&rsquo;s why.&rdquo;</em>
   </p>
 
   <p>
@@ -358,7 +358,7 @@
   </p>
 
   <p>
-    That question can&rsquo;t be answered by adding rules to the agent. It has to be answered by the system the agent touches &mdash; declaratively, before the action happens, in a way the agent can read. Concretely, that means three properties.
+    That question can&rsquo;t be answered by adding rules to the agent. It has to be answered by the system the agent touches &mdash; declaratively, before the action happens, in a way the agent can read. In our experience that breaks down into three properties below.
   </p>
 
   <h3>1. The domain has a typed shape, declared once</h3>
@@ -390,7 +390,7 @@
 <span class="ink">}</span></pre>
 
   <p>
-    The agent reads this. It can reason about the structure. It can correct the strategy. The next move for any sane agent is to stop, ask for the missing preapproval, and retry &mdash; not retry blindly until something passes. A well-shaped 403 is a teacher; a 500 is a wall.
+    The agent reads this and can reason about the shape of it. The next move for any sane agent is to stop and ask for the missing preapproval, then retry &mdash; not to retry blindly until something happens to pass. A well-shaped 403 teaches; a 500 is just a wall.
   </p>
 
   <p>
@@ -400,11 +400,11 @@
   <h3>3. Irreversibility is a primitive, not a guardrail</h3>
 
   <p>
-    Some actions, after they confirm, can&rsquo;t be undone. Money sent. Backup deleted. Customer notified. Pixels rendered to a contract.
+    Some actions, once they confirm, can&rsquo;t be undone. A wire goes out, a backup gets deleted, the customer gets the email &mdash; pick whichever scares your team the most. Most systems treat that fact as a UX problem: show a confirm dialog, log to an audit trail, hope.
   </p>
 
   <p>
-    Most systems treat irreversibility as a quality of UX &mdash; show a confirm dialog, log to an audit trail, hope. We treat it as a property of the effect itself. An effect can carry <code>__irr.point=&quot;high&quot;</code> in its context, and the runtime then refuses any subsequent <code>α:remove</code> on the entity that effect created, by construction. Forward-correction is the only path. The Cursor-style &ldquo;agent decided to delete production&rdquo; becomes <em>unreachable</em> for those points &mdash; not because we filtered the language, but because the data can&rsquo;t leave that state.
+    We treat it as a property of the effect itself. An effect carries <code>__irr.point=&quot;high&quot;</code> in its context, and from then on the runtime refuses any <code>α:remove</code> on the entity that effect created. The only path forward is forward-correction. &ldquo;Agent decided to delete production&rdquo; becomes <em>unreachable</em> for those points &mdash; not because someone filtered the language, but because the data can&rsquo;t leave that state.
   </p>
 
   <p>
@@ -428,23 +428,19 @@
   <h2>What it isn&rsquo;t</h2>
 
   <p>
-    A few things this layer is not, because the launch reception will ask:
+    Some things to head off, because the launch reception will ask. We don&rsquo;t replace frameworks. LangChain and CrewAI describe how an agent thinks; we describe what the agent inhabits. The two compose &mdash; we&rsquo;ve actually shipped LangChain agents on top of a Fold runtime in our own dogfooding work.
   </p>
 
   <p>
-    It&rsquo;s not a framework replacement. LangChain, CrewAI, Mastra still describe how the agent thinks. We describe what the agent inhabits. They compose; you can ship LangChain agents on top of a Fold runtime tomorrow.
+    We&rsquo;re also not in the authorization slot. Permit.io, Cerbos and Auth0 FGA answer who the agent is and what API endpoints they&rsquo;re allowed to hit. We answer the next question down: given that the agent is allowed to call this intent, what would actually happen, and why is this particular call illegal. Authz is one of about six layers we sit on top of.
   </p>
 
   <p>
-    It&rsquo;s not authorization. Permit.io, Cerbos, Auth0 FGA still answer who the agent is and what they can call at the API edge. Fold answers the next question: given that this agent is allowed to call this intent, what would actually happen and why is this particular call illegal. Authz is one of six layers we sit on top of.
+    Guardrails in the Lakera or NeMo sense filter the agent&rsquo;s output. We don&rsquo;t do that. We shape the world&rsquo;s response back, in structured-rejection form. Output filtering happens downstream of the language model; runtime contracts happen upstream of the effect.
   </p>
 
   <p>
-    It&rsquo;s not a guardrail in the Lakera / NeMo sense. We don&rsquo;t filter the agent&rsquo;s output. We filter the world&rsquo;s response &mdash; in the form of structured rejections that flow back. Output filtering is downstream of language models; runtime contracts are upstream of effects.
-  </p>
-
-  <p>
-    It&rsquo;s not low-code. The artifact is dense, and authoring a domain takes thought. What it gives in return is that one artifact powers four readers &mdash; the UI for humans, the voice interface, the agent API, and the document materialiser &mdash; all from the same source.
+    And no, this isn&rsquo;t low-code. The artifact is dense and authoring a domain takes work. The trade is that one artifact powers four readers off a single source &mdash; the UI for humans, the voice interface, the agent API, the document materialiser.
   </p>
 
   <h2>Where it could break</h2>
@@ -480,11 +476,7 @@
   </p>
 
   <p>
-    The PocketOS post-mortem ended with the agent saying it didn&rsquo;t verify and didn&rsquo;t check. That&rsquo;s a true statement about the agent. It&rsquo;s also a true statement about what every system the agent touched gave it permission to do. The answer to the post-mortem isn&rsquo;t a smarter agent. The answer is a system that says no, with reasons, before the database is gone.
-  </p>
-
-  <p>
-    Stop giving AI agents API keys. Give them a domain. Then watch what happens when the domain says no first.
+    The Cursor agent&rsquo;s post-mortem ended with &ldquo;I didn&rsquo;t verify, I didn&rsquo;t check.&rdquo; That sentence is fair as a description of the agent, and it&rsquo;s also fair as a description of every system the agent touched, which let it do exactly what it did. We don&rsquo;t think the answer to that post-mortem is a smarter agent. We think the answer is a system that says no, with reasons, before the database is gone.
   </p>
 
   <hr>
@@ -492,7 +484,7 @@
   <p style="text-align: center; font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; color: var(--ink-mid);">
     <a href="https://github.com/intent-driven-software/fold-runtime-quickstart">→ run the demo (2 commands)</a>
     &nbsp;&nbsp;·&nbsp;&nbsp;
-    <a href="https://www.loom.com/share/2ca4a40e3b9245feb86a74a998e42cb8">→ 75-sec walkthrough</a>
+    <a href="https://www.loom.com/share/2ca4a40e3b9245feb86a74a998e42cb8">→ 70-sec walkthrough</a>
     &nbsp;&nbsp;·&nbsp;&nbsp;
     <a href="https://github.com/intent-driven-software/idf-mcp">→ source on GitHub</a>
   </p>
