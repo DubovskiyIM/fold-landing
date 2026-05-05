@@ -332,33 +332,25 @@
   <h2>The three layers that already exist</h2>
 
   <p>
-    There&rsquo;s no shortage of agent infrastructure in 2026. Three layers already exist, each solving a real piece of the problem:
+    There&rsquo;s no shortage of agent infrastructure in 2026. Frameworks (LangChain, CrewAI, Mastra, AutoGen, Vercel AI SDK) handle the <em>how to think</em> question &mdash; prompts, memory, multi-agent orchestration. Necessary, but a framework won&rsquo;t describe the world your agent acts in. That&rsquo;s a different problem.
   </p>
 
   <p>
-    <strong>Frameworks</strong> &mdash; LangChain, CrewAI, Mastra, AutoGen, Vercel AI SDK &mdash; tell the agent <em>how to think</em>. They orchestrate prompts, manage memory, route tool calls, support multi-agent crews. They are necessary but they don&rsquo;t describe the world the agent acts in.
+    Authorization vendors (Permit.io, Okta for AI Agents, Cerbos, Auth0 FGA) tell the system <em>who the agent is</em> &mdash; role-based access, attribute-based policies, scoped tokens. The granularity is wrong for our problem, though: they answer who, not what-allowed-in-this-business.
   </p>
 
   <p>
-    <strong>Authorization</strong> &mdash; Permit.io, Okta for AI Agents, Cerbos, Auth0 FGA &mdash; tell the system <em>who the agent is</em>. They enforce role-based access, attribute-based policies, scoped tokens. Necessary, but they answer the wrong granularity: who, not what-allowed-in-this-business.
+    And then there are guardrails &mdash; Lakera, NeMo Guardrails, Lasso. They filter <em>what the agent says</em>: probabilistic, post-hoc, output-side. Good for catching obvious prompt-injection or PII leaks. Useless for action-side mistakes. An agent that politely says &ldquo;I will now delete this volume&rdquo; passes every guardrail and ends in the same 30-hour outage.
   </p>
 
   <p>
-    <strong>Guardrails</strong> &mdash; Lakera, NeMo Guardrails, Lasso &mdash; filter <em>what the agent says</em>. Probabilistic, post-hoc, output-side. They catch obvious prompt-injection or PII leaks. They don&rsquo;t catch <em>action-side</em> mistakes &mdash; an agent that politely says &ldquo;I will now delete this volume&rdquo; passes every guardrail and ends in the same 30-hour outage.
-  </p>
-
-  <p>
-    Stack all three, and you have an agent who knows how to think, identifies itself correctly, says nothing offensive &mdash; and still wires fifty thousand dollars where it shouldn&rsquo;t, because the system answered with HTTP 200.
+    Stack all three and you get an agent that thinks, knows who it is, says nothing offensive, and still wires fifty thousand dollars where it shouldn&rsquo;t, because the API answered HTTP 200.
   </p>
 
   <h2>The missing layer</h2>
 
   <p>
-    The missing layer answers a different question: <em>what can the agent do in <strong>this specific business</strong>, and why should something that looks plausible be refused?</em>
-  </p>
-
-  <p>
-    That question can&rsquo;t be answered by adding rules to the agent. It has to be answered by the system the agent touches &mdash; declaratively, before the action happens, in a way the agent can read. In our experience that breaks down into three properties below.
+    The missing layer answers something the existing three don&rsquo;t even try to: what can the agent do in <strong>this specific business</strong>, and why should an action that looks plausible to the agent actually be refused. That&rsquo;s not a question you fix by adding rules to the agent. The system the agent talks to has to answer it, declaratively, before any effect lands &mdash; in a shape the agent can read back. In practice we&rsquo;ve found this collapses into three things, which is what the next sections cover.
   </p>
 
   <h3>1. The domain has a typed shape, declared once</h3>
@@ -394,7 +386,7 @@
   </p>
 
   <p>
-    Frameworks won&rsquo;t add this for you. The system you ship has to do it. Once you author the domain artifact, you get this for free across every intent, because the runtime interprets the artifact and produces the rejection.
+    No framework will give you this for free &mdash; the system you ship has to do it. The trade is that once the domain artifact is authored, you get the rejection shape across every intent automatically, because the runtime is what produces it.
   </p>
 
   <h3>3. Irreversibility is a primitive, not a guardrail</h3>
@@ -408,21 +400,21 @@
   </p>
 
   <p>
-    This is the difference between a guardrail that <em>discourages</em> a bad action and a runtime contract that <em>structurally prevents</em> it.
+    The distinction we care about: a guardrail can <em>discourage</em> a bad action; a runtime contract makes it <em>not happen</em>.
   </p>
 
   <h2>What this looks like in practice</h2>
 
   <p>
-    We packaged the runtime as <code>@intent-driven/mcp-server</code> on npm and a Docker quickstart. It runs locally in two commands, against a real demo domain &mdash; <code>invest</code>, fourteen entities, sixty-one intents, five invariants, a seven-check preapproval guard.
+    We packaged the runtime as <code>@intent-driven/mcp-server</code> on npm with a Docker quickstart. Two commands and you have it running locally against the <code>invest</code> demo domain &mdash; fourteen entities, sixty-one intents, the rest you can see in the source.
   </p>
 
   <p>
-    The three-act demo is short and concrete. <em>Act&nbsp;one</em>: an agent submits a fifty-thousand-dollar BTC long without preapproval. The runtime intercepts before any effect lands in storage. HTTP 403. Structured rejection. The agent didn&rsquo;t have a preapproval row in the world; the runtime tells it exactly that. <em>Act&nbsp;two</em>: a human, acting as the investor role, issues a thousand-dollar-cap preapproval through one declarative effect. No new endpoint, no middleware change &mdash; the intent <code>delegate_to_agent</code> is part of the same artifact the agent reads. <em>Act&nbsp;three</em>: the same agent now reads its own cap, scales the order from fifty thousand down to nine-fifty, executes. HTTP 200.
+    The demo is three scripts back-to-back. The first one (<code>demo:rogue</code>) has an agent submit a fifty-thousand-dollar BTC long with no preapproval. The runtime intercepts before any effect even lands in storage and answers <code>HTTP 403</code> with the structured body shown above &mdash; the agent never had the preapproval row to read against. Then <code>demo:grant</code>: a human in the investor role issues a $1,000-cap preapproval, which is just one declarative effect, no new endpoint, no middleware. The intent <code>delegate_to_agent</code> is part of the same artifact the agent reads. Finally <code>demo:smart</code> runs the same agent, same intent, same call. This time it first reads the preapproval cap from its own tool description, scales the order from $50,000 down to $950, and re-submits. <code>HTTP 200</code>, position confirmed.
   </p>
 
   <p>
-    The agent didn&rsquo;t bump into a wall. It read the wall and walked around it. None of this was special agent code. The agent reads <code>ontology.roles.agent.preapproval</code> the same way it reads tool descriptions &mdash; through a declarative artifact authored once and consumed by every reader.
+    The point is that the agent didn&rsquo;t hit a wall and bounce. It read the wall and routed around it. There is no special agent code making any of this work &mdash; the agent reads <code>ontology.roles.agent.preapproval</code> through the same mechanism it reads tool descriptions, off one declarative artifact that every other reader (UI, voice, document) uses too.
   </p>
 
   <h2>What it isn&rsquo;t</h2>
