@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blog — Fold</title>
+
+<meta name="description" content="Long-form essays on agent runtime layers, declarative domain formats, and why irreversibility is a primitive — from the team behind Fold.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Blog — Fold">
+<meta property="og:description" content="Long-form essays on agent runtime layers, declarative domain formats, and why irreversibility is a primitive.">
+<meta property="og:image" content="https://fold.intent-design.tech/og-image.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://fold.intent-design.tech/blog/">
+<link rel="canonical" href="https://fold.intent-design.tech/blog/">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Blog — Fold">
+<meta name="twitter:description" content="Long-form essays on agent runtime layers, declarative domain formats, and why irreversibility is a primitive.">
+<meta name="twitter:image" content="https://fold.intent-design.tech/og-image.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #14120f;
+    --paper-dim: #1b1916;
+    --paper-bright: #0e0c0a;
+    --ink: #f0ebdf;
+    --ink-dim: #a7a295;
+    --ink-mid: #6a675f;
+    --rule: #2a2721;
+    --accent: #7a8eb8;
+
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+    --text-col: 680px;
+
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  a:hover { text-decoration-thickness: 2px; }
+  ::selection { background: var(--accent); color: var(--paper); }
+
+  /* Masthead — same as article + landing */
+  header.masthead {
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink-dim);
+    padding: 18px 0;
+  }
+  header.masthead .nav-inner {
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  header.masthead .brand-block {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  header.masthead .brand-name { font-size: 18px; color: var(--ink); margin-right: 6px; }
+  header.masthead .dot { color: var(--rule); }
+  header.masthead nav.links { display: flex; gap: 20px; }
+  header.masthead nav.links a {
+    color: var(--ink-dim);
+    text-decoration: none;
+  }
+  header.masthead nav.links a:hover { color: var(--ink); }
+
+  /* Layout */
+  main {
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 80px 48px 120px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin-bottom: 14px;
+  }
+  .eyebrow.accent { color: var(--accent); }
+
+  h1.page {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(2.0rem, 3.4vw, 2.8rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 18px;
+  }
+  p.lead {
+    font-family: var(--serif);
+    font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+    line-height: 1.55;
+    color: var(--ink-dim);
+    max-width: var(--text-col);
+    margin-bottom: 56px;
+  }
+
+  /* Post listing */
+  ul.posts {
+    list-style: none;
+    border-top: 1px solid var(--rule);
+  }
+  ul.posts li {
+    border-bottom: 1px solid var(--rule);
+    padding: 28px 0;
+  }
+  ul.posts li a.post-link {
+    display: block;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  ul.posts li a.post-link:hover h3 { color: var(--accent); }
+  ul.posts li .post-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  ul.posts li .post-meta .dot { color: var(--rule); }
+  ul.posts li h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.4rem;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+    color: var(--ink);
+    transition: color 0.15s;
+  }
+  ul.posts li p {
+    font-family: var(--serif);
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    max-width: var(--text-col);
+  }
+
+  /* Footer — same as landing/article */
+  footer {
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-mid);
+    padding: 18px 0;
+  }
+  footer .footer-inner {
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  footer a {
+    color: var(--ink-mid);
+    text-decoration: none;
+  }
+  footer a:hover { color: var(--ink); }
+  footer .links { display: flex; gap: 18px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="nav-inner">
+    <div class="brand-block">
+      <a href="https://fold.intent-design.tech/" style="color: var(--ink); text-decoration: none;">
+        <span class="brand-name">Fold</span>
+      </a>
+      <span class="dot">·</span>
+      <span>blog</span>
+    </div>
+    <nav class="links">
+      <a href="https://fold.intent-design.tech/">landing</a>
+      <a href="https://github.com/intent-driven-software/fold-runtime-quickstart">quickstart</a>
+      <a href="https://github.com/intent-driven-software/idf-mcp">github</a>
+      <a href="https://www.npmjs.com/package/@intent-driven/mcp-server">npm</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="eyebrow accent">Blog</div>
+  <h1 class="page">Notes from the runtime layer.</h1>
+  <p class="lead">Long-form essays on the agent-safety class question, declarative domain formats, and why irreversibility is a primitive &mdash; not a guardrail. Written for engineers shipping AI agents into production this quarter.</p>
+
+  <ul class="posts">
+    <li>
+      <a class="post-link" href="/blog/why-runtime-layer/">
+        <div class="post-meta">
+          <span>2026-04-29</span>
+          <span class="dot">&middot;</span>
+          <span>~9 min read</span>
+          <span class="dot">&middot;</span>
+          <span>Essay</span>
+        </div>
+        <h3>Why we built the runtime layer between AI agents and your domain</h3>
+        <p>Agents don&rsquo;t fail because they&rsquo;re stupid. They fail because the systems they touch never tell them what&rsquo;s allowed. A long argument for putting structured rejections, role scopes, and irreversibility points into the runtime &mdash; not into the prompt.</p>
+      </a>
+    </li>
+  </ul>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span>© Fold &middot; 2026 &middot; built by <a href="https://github.com/DubovskiyIM">@DubovskiyIM</a></span>
+    <span class="links">
+      <a href="https://fold.intent-design.tech/">landing</a>
+      <a href="https://github.com/intent-driven-software/fold-runtime-quickstart">quickstart</a>
+      <a href="https://github.com/intent-driven-software/idf-mcp">idf-mcp</a>
+      <a href="mailto:dubovskiy.im@gmail.com">contact</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
