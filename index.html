@@ -473,6 +473,77 @@
     font-weight: 600;
   }
 
+  /* 3-column class-of-guarantee comparison. Stack on ≤860px.
+     Primitive column gets accent border + bg, sells the difference
+     visually before the dl is read. */
+  .class-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 36px;
+  }
+  @media(max-width: 860px) {
+    .class-grid { grid-template-columns: 1fr; gap: 16px; }
+  }
+  .class-col {
+    border: 1px solid var(--rule);
+    background: var(--paper-bright);
+    padding: 24px 22px;
+    display: flex;
+    flex-direction: column;
+  }
+  .class-col.primitive {
+    border-color: var(--accent);
+    border-width: 1px;
+    background: var(--accent-bg);
+    box-shadow: -3px 0 0 0 var(--accent);
+  }
+  .class-eyebrow {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin-bottom: 12px;
+  }
+  .class-col.primitive .class-eyebrow { color: var(--accent); }
+  .class-head {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.4;
+    margin-bottom: 22px;
+    min-height: 60px;
+  }
+  .class-col.primitive .class-head { color: var(--accent); font-style: normal; font-weight: 500; }
+  .class-dl { font-size: 13px; line-height: 1.55; }
+  .class-dl dt {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin-top: 14px;
+    margin-bottom: 4px;
+  }
+  .class-dl dt:first-child { margin-top: 0; }
+  .class-dl dd {
+    margin: 0;
+    color: var(--ink-dim);
+    font-family: var(--sans);
+  }
+  .class-dl dd code {
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .class-dl dd em {
+    color: var(--ink);
+    font-style: italic;
+    font-weight: 500;
+  }
+  .class-col.primitive .class-dl dd em { color: var(--accent); }
+
   /* Cost / evidence grid under the artifact preview. Two columns
      on desktop, stack on narrow. */
   .cost-grid {
@@ -735,6 +806,7 @@
     </div>
     <nav class="links">
       <a href="#what">what</a>
+      <a href="#why-primitive">why-primitive</a>
       <a href="#artifact">artifact</a>
       <a href="#compare">compare</a>
       <a href="#quickstart">quickstart</a>
@@ -842,6 +914,88 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- WHY IRREVERSIBILITY IS A PRIMITIVE                            -->
+  <!-- ============================================================ -->
+  <section class="block" id="why-primitive">
+    <div class="eyebrow accent">Class of guarantee</div>
+    <h2>Irreversibility is a constructor, not a reviewer.</h2>
+    <p class="lead">Most agent-safety layers are <em>observers</em> &mdash; they see a call, decide whether to let it through, log the rest. That&rsquo;s the &ldquo;guardrail&rdquo; class. Irreversibility-as-a-primitive is a different class: it&rsquo;s a property of the effect itself, baked into the runtime&rsquo;s reducer. <span style="color: var(--accent);">You can&rsquo;t bypass a property.</span> No &ldquo;skip-guard&rdquo; flag, no emergency override path, no admin role that gets to delete the unloggable.</p>
+
+    <div class="class-grid">
+      <div class="class-col">
+        <div class="class-eyebrow">Prompt-only</div>
+        <p class="class-head">&ldquo;Please don&rsquo;t delete production.&rdquo;</p>
+        <dl class="class-dl">
+          <dt>Enforced by</dt>
+          <dd>LLM judgement under stress.</dd>
+          <dt>Bypassed by</dt>
+          <dd>Adversarial input. Edge-case reasoning. The agent not seeing the system prompt at the right turn.</dd>
+          <dt>What survives</dt>
+          <dd>Best effort. Hope.</dd>
+        </dl>
+      </div>
+
+      <div class="class-col">
+        <div class="class-eyebrow">Middleware guardrail</div>
+        <p class="class-head">A pre-call check function.</p>
+        <dl class="class-dl">
+          <dt>Enforced by</dt>
+          <dd>An <code>if</code>-statement on a request handler.</dd>
+          <dt>Bypassed by</dt>
+          <dd>A &ldquo;skip-guard&rdquo; feature flag. A forgotten env var. A direct DB write. A misconfigured server. The second engineer who adds an &ldquo;emergency override&rdquo; route and forgets to remove it.</dd>
+          <dt>What survives</dt>
+          <dd>Whatever the maintainer remembered to gate.</dd>
+        </dl>
+      </div>
+
+      <div class="class-col primitive">
+        <div class="class-eyebrow">Irreversibility primitive</div>
+        <p class="class-head">A property of the effect in &Phi;.</p>
+        <dl class="class-dl">
+          <dt>Enforced by</dt>
+          <dd>A branch in the runtime&rsquo;s reducer &mdash; <em>not</em> a check on top of one.</dd>
+          <dt>Bypassed by</dt>
+          <dd>Editing the IDF artifact and landing the change through PR review. Nothing else.</dd>
+          <dt>What survives</dt>
+          <dd>Forward-correction always (<code>α:&quot;replace&quot;</code>). Erasure of high-irr effects: <em>never</em>.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="demo-caption" style="margin-top: 40px;">The branch, verbatim from <code>idf/server/validator.js</code></div>
+<div class="terminal"><span class="cmt">// Step 4 — irreversibility check, runs on every effect.</span>
+<span class="cmt">// α:"remove" is blocked when target's history contains a confirmed</span>
+<span class="cmt">// effect with __irr.point === "high" && at !== null.</span>
+<span class="cmt">// Forward-correction via α:"replace" is always allowed.</span>
+<span class="kw">if</span> (effect.alpha === <span class="str">"remove"</span> && ctx.id && !effect.target.startsWith(<span class="str">"drafts"</span>)) {
+  <span class="kw">const</span> { hasIrreversiblePast } = require(<span class="str">"./irreversibility.cjs"</span>);
+  <span class="kw">const</span> historyRows = db.prepare(
+    <span class="str">"SELECT context FROM effects WHERE status = 'confirmed' AND context LIKE ?"</span>
+  ).all(<span class="str">`%"id":"${ctx.id}"%`</span>);
+  <span class="kw">if</span> (hasIrreversiblePast(historyRows)) {
+    <span class="kw">return</span> { valid: <span class="num">false</span>, reason: <span class="str">"irreversible_point_passed"</span> };
+  }
+}
+
+<span class="cmt">// irreversibility.cjs — the predicate, no configuration surface.</span>
+<span class="kw">function</span> hasIrreversiblePast(history) {
+  <span class="kw">for</span> (<span class="kw">const</span> ef <span class="kw">of</span> history) {
+    <span class="kw">const</span> irr = getIrreversibility(ef);
+    <span class="kw">if</span> (irr?.point === <span class="str">"high"</span> && irr.at != <span class="num">null</span>) <span class="kw">return</span> <span class="num">true</span>;
+  }
+  <span class="kw">return</span> <span class="num">false</span>;
+}</div>
+
+    <p class="note">
+      <strong>This is not a check you turn on.</strong> It&rsquo;s a branch in the reducer. Removing it requires shipping a new runtime build &mdash; not flipping a toggle in your config, not setting an env var, not adding an admin role. The space of bad effects isn&rsquo;t a denylist your guardrail might miss; <em>it&rsquo;s empty by construction</em>.
+    </p>
+
+    <p class="note">
+      To make an effect mutable, the artifact author edits <code>__irr.point</code> at <em>declaration</em> time, before the effect is confirmed &mdash; reviewed in code, not toggled at runtime. Compare: SQL constraints (not application validation), type safety (not runtime asserts), capability security (not POSIX <code>rwx</code>).
+    </p>
   </section>
 
   <!-- ============================================================ -->
