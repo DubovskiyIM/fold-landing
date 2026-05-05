@@ -64,7 +64,7 @@
     box-sizing: border-box;
   }
 
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; overflow-x: hidden; }
 
   body {
     background: var(--paper);
@@ -74,6 +74,7 @@
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
   a {
@@ -100,6 +101,8 @@
     padding: 1px 6px;
     border-radius: 3px;
     color: var(--accent);
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   /* ===== Header / footer mono ===== */
@@ -114,18 +117,36 @@
     display: flex;
     align-items: center;
     gap: 14px;
+    flex-wrap: wrap;
+    min-width: 0;
   }
   header.masthead .brand-name {
     font-size: 18px;
     color: var(--ink);
   }
   header.masthead .dot { color: var(--rule); }
-  header.masthead nav.links { display: flex; gap: 20px; }
+  header.masthead nav.links { display: flex; gap: 20px; flex-wrap: wrap; }
   header.masthead nav.links a {
     color: var(--ink-dim);
     text-decoration: none;
   }
   header.masthead nav.links a:hover { color: var(--ink); }
+
+  /* Mobile masthead — скрываем section-anchors и описание, оставляем
+     brand + конверсионные внешние ссылки (github / npm). Section-anchors
+     на узком экране плохо таргетятся пальцем и дублируют main CTA. */
+  @media (max-width: 640px) {
+    header.masthead { padding: 14px 0; }
+    header.masthead .nav-inner { padding: 0 20px; gap: 10px; }
+    header.masthead .brand-tagline,
+    header.masthead .brand-block .dot.tagline-dot {
+      display: none;
+    }
+    header.masthead nav.links { gap: 16px; }
+    header.masthead nav.links a.nav-section {
+      display: none;
+    }
+  }
 
   footer {
     border-top: 1px solid var(--rule);
@@ -147,6 +168,9 @@
     width: 100%;
     margin: 0 auto;
     padding: 80px 48px 120px;
+  }
+  @media (max-width: 640px) {
+    main { padding: 48px 20px 80px; }
   }
 
   /* Masthead/footer container shrink ровно к ширине main, чтобы
@@ -799,17 +823,17 @@
   <div class="nav-inner">
     <div class="brand-block">
       <span class="brand-name">Fold</span>
+      <span class="dot tagline-dot">·</span>
+      <span class="brand-tagline">domain runtime for AI agents</span>
       <span class="dot">·</span>
-      <span>domain runtime for AI agents</span>
-      <span class="dot">·</span>
-      <span>v1.0.0</span>
+      <span>v1.0.1</span>
     </div>
     <nav class="links">
-      <a href="#what">what</a>
-      <a href="#why-primitive">why-primitive</a>
-      <a href="#artifact">artifact</a>
-      <a href="#compare">compare</a>
-      <a href="#quickstart">quickstart</a>
+      <a href="#what" class="nav-section">what</a>
+      <a href="#why-primitive" class="nav-section">why-primitive</a>
+      <a href="#artifact" class="nav-section">artifact</a>
+      <a href="#compare" class="nav-section">compare</a>
+      <a href="#quickstart" class="nav-section">quickstart</a>
       <a href="https://github.com/intent-driven-software/idf-mcp">github</a>
       <a href="https://www.npmjs.com/package/@intent-driven/mcp-server">npm</a>
     </nav>
