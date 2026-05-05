@@ -345,6 +345,50 @@
     letter-spacing: 0.04em;
   }
 
+  /* Transcript fallback under Loom — accessibility + SEO + readers
+     who can't / don't want to play video. Collapsed by default. */
+  details.transcript {
+    margin-top: 18px;
+    border-top: 1px solid var(--rule);
+    padding-top: 14px;
+  }
+  details.transcript summary {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  details.transcript summary::-webkit-details-marker { display: none; }
+  details.transcript summary::before {
+    content: "▸ ";
+    color: var(--ink-mid);
+    margin-right: 4px;
+  }
+  details.transcript[open] summary::before { content: "▾ "; }
+  details.transcript summary:hover { color: var(--ink); }
+  details.transcript .transcript-body {
+    margin-top: 18px;
+    max-width: var(--text-col);
+  }
+  details.transcript .transcript-body p {
+    font-family: var(--serif);
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    margin-bottom: 14px;
+  }
+  details.transcript .transcript-body p strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  details.transcript .transcript-body code {
+    font-size: 12.5px;
+  }
+
   /* ===== 4-cell grid (proof points) ===== */
   .grid {
     display: grid;
@@ -409,6 +453,21 @@
     margin: 24px 0 8px;
   }
   .demo-caption:first-child { margin-top: 0; }
+
+  /* Inline annotation under code/terminal blocks. Mono, dim,
+     same reading column as headings. */
+  .note {
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    max-width: var(--text-col);
+    margin-top: 14px;
+  }
+  .note code {
+    font-size: 11.5px;
+    color: var(--accent);
+  }
 
   .demo-coda {
     margin-top: 28px;
@@ -600,6 +659,7 @@
     </div>
     <nav class="links">
       <a href="#what">what</a>
+      <a href="#artifact">artifact</a>
       <a href="#compare">compare</a>
       <a href="#quickstart">quickstart</a>
       <a href="https://github.com/intent-driven-software/idf-mcp">github</a>
@@ -664,6 +724,16 @@
         title="Fold demo — Stop giving AI agents API keys"
       ></iframe>
     </div>
+    <details class="transcript">
+      <summary>Prefer reading? Three-act transcript</summary>
+      <div class="transcript-body">
+        <p><strong>Setup.</strong> One terminal: <code>docker compose up</code> &mdash; the runtime boots with the <code>invest</code> demo domain (14 entities, 61 intents, 5 invariants, 7-check preapproval pipeline). Second terminal runs the three scripts back-to-back.</p>
+        <p><strong>Act 1 &mdash; <code>npm run demo:rogue</code>.</strong> Agent posts a $50,000 BTC long to <code>/api/agent/invest/exec/agent_execute_preapproved_order</code>. No preapproval exists. Runtime returns <code>HTTP 403 preapproval_denied</code> with a structured body: <code>{ error, intentId, reason: &quot;no_preapproval&quot;, details: { entity, ownerField, viewerId } }</code>. Zero effects ingested. The agent reads the JSON.</p>
+        <p><strong>Act 2 &mdash; <code>npm run demo:grant</code>.</strong> Investor (human role) issues one declarative effect: <code>AgentPreapproval { maxAmount: 1000, dailyLimit: 1000, expiresAt: +24h, status: &quot;active&quot; }</code>. One row in &Phi;, no middleware, no API-key rotation, no toggle in a separate auth dashboard.</p>
+        <p><strong>Act 3 &mdash; <code>npm run demo:smart</code>.</strong> Same agent, same intent, same call. This time it first reads <code>roles.agent.preapproval.maxAmount</code> from the tool description, sees <code>1000</code>, scales the order down to $950, and re-submits. Runtime runs the 7-check pipeline (active &rarr; notExpired &rarr; maxAmount &rarr; dailySum &rarr; invariants &rarr; <code>__irr</code>-guard &rarr; role-allowed) &mdash; all pass &mdash; <code>HTTP 200</code>, position confirmed.</p>
+        <p><strong>Closing shot.</strong> Same domain, three behaviours, zero <code>if</code>-statements in agent code. The runtime told the agent what it could do, why it couldn&rsquo;t, and what would happen if it tried &mdash; before the call, not after.</p>
+      </div>
+    </details>
   </section>
 
   <!-- ============================================================ -->
@@ -699,6 +769,43 @@
   </section>
 
   <!-- ============================================================ -->
+  <!-- WHAT YOU WRITE — IDF preview                                  -->
+  <!-- ============================================================ -->
+  <section class="block" id="artifact">
+    <div class="eyebrow">What you write</div>
+    <h2>The artifact, in fifteen lines.</h2>
+    <p class="lead">The runtime reads one declarative artifact &mdash; entities, intents, role scopes, preapproval predicates. Below: an excerpt from the <code>invest</code> demo domain. No DSL, no codegen &mdash; plain JS objects the runtime folds into an event log.</p>
+
+<div class="terminal"><span class="cmt">// invest/intents.js — what the agent is allowed to call</span>
+intents.<span class="kw">agent_execute_preapproved_order</span> = {
+  <span class="kw">base</span>: <span class="str">"create"</span>,
+  <span class="kw">forRoles</span>: [<span class="str">"agent"</span>],
+  <span class="kw">parameters</span>: {
+    <span class="kw">side</span>:     { <span class="kw">type</span>: <span class="str">"select"</span>, <span class="kw">options</span>: [<span class="str">"long"</span>, <span class="str">"short"</span>] },
+    <span class="kw">quantity</span>: { <span class="kw">type</span>: <span class="str">"number"</span>, <span class="kw">required</span>: <span class="num">true</span> },
+    <span class="kw">ticker</span>:   { <span class="kw">type</span>: <span class="str">"ref"</span>,    <span class="kw">entityRef</span>: <span class="str">"Asset"</span> },
+  },
+  <span class="kw">particles</span>: { <span class="kw">effects</span>: [
+    { <span class="kw">α</span>: <span class="str">"create"</span>, <span class="kw">entity</span>: <span class="str">"Order"</span>, <span class="kw">fields</span>: <span class="str">"$params"</span> },
+  ]},
+};
+
+<span class="cmt">// invest/ontology.js — what the agent is allowed to do, declaratively</span>
+roles.<span class="kw">agent</span> = {
+  <span class="kw">base</span>: <span class="str">"agent"</span>,
+  <span class="kw">canExecute</span>: [<span class="str">"agent_execute_preapproved_order"</span>],
+  <span class="kw">preapproval</span>: {
+    <span class="kw">required</span>: <span class="num">true</span>,
+    <span class="kw">predicates</span>: [<span class="str">"active"</span>, <span class="str">"notExpired"</span>, <span class="str">"maxAmount"</span>, <span class="str">"dailySum"</span>],
+  },
+};</div>
+
+    <p class="note">
+      That&rsquo;s it. The runtime turns this into the <code>/api/agent/invest/exec/*</code> endpoint, the MCP tool description Claude reads, the structured 403 above, and the irreversibility guard. Same artifact powers four readers: UI, voice, agent, document. Author it once, no scaffolding to regenerate when the domain changes.
+    </p>
+  </section>
+
+  <!-- ============================================================ -->
   <!-- LIVE DEMO                                                     -->
   <!-- ============================================================ -->
   <section class="block" id="live">
@@ -709,7 +816,7 @@
     <div class="demo-caption">Step 1 &mdash; agent sends the order</div>
 <div class="terminal"><span class="prompt">$</span> npm run demo:rogue
 <span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  Step 2 &mdash; <span class="warn">Rogue agent: 'Hmm, $50,000 BTC long, sounds reasonable'</span>
+  <span class="warn">Rogue agent: 'Hmm, $50,000 BTC long, sounds reasonable.'</span>
 <span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
   <span class="cmt">Agent sends:</span>
   <span class="ink">{</span>
@@ -722,9 +829,13 @@
     <span class="kw">"assetType"</span><span class="ink">:</span>   <span class="str">"crypto"</span>
   <span class="ink">}</span></div>
 
-    <div class="demo-caption">Step 2 &mdash; the runtime intercepts before any effect lands</div>
+    <p class="note">
+      <code>α</code> is the IDF effect verb &mdash; the &ldquo;what kind of change&rdquo; particle. Generic verbs (<code>create</code> / <code>replace</code> / <code>remove</code>) drive lifecycle; domains layer their own (<code>buy</code>, <code>sell</code>, <code>long</code>). Same shape across all verbs &mdash; <code>α:&quot;remove&quot;</code> on anything past <code>__irr.point=&quot;high&quot;</code> is blocked by construction.
+    </p>
+
+    <div class="demo-caption">Step 2 &mdash; runtime intercepts before any effect lands</div>
 <div class="terminal"><span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  Step 3 &mdash; Fold runtime intercepts BEFORE the effect is ingested
+  Fold runtime intercepts BEFORE the effect is ingested
 <span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
   HTTP <span class="err">403</span>
   Body:
@@ -742,6 +853,27 @@
     <p class="demo-coda">
       Without Fold: a <code>200&nbsp;OK</code>. Position created. $50,000 of someone else&rsquo;s money moved before any human saw it.<br>
       With Fold: the runtime rejected the call <em>declaratively</em>, with a structured <code>failedCheck</code> the agent can reason about. <a href="https://github.com/intent-driven-software/fold-runtime-quickstart#act-3--smart-agent-reads-the-limit-scales-down-executes">See Act 3 →</a>
+    </p>
+
+    <div class="demo-caption" style="margin-top: 36px;">And on the deletion class &mdash; the same shape, by construction</div>
+<div class="terminal"><span class="cmt"># agent attempts to remove a confirmed Position with __irr.point="high"</span>
+<span class="prompt">$</span> curl -X POST :3001/api/agent/invest/exec/remove_position -d '{"id":"pos_42"}'
+  HTTP <span class="err">403</span>
+  Body:
+  <span class="ink">{</span>
+    <span class="kw">"error"</span><span class="ink">:</span>      <span class="err">"irreversibility_violation"</span><span class="ink">,</span>
+    <span class="kw">"intentId"</span><span class="ink">:</span>   <span class="str">"remove_position"</span><span class="ink">,</span>
+    <span class="kw">"reason"</span><span class="ink">:</span>     <span class="str">"past_high_irr_point"</span><span class="ink">,</span>
+    <span class="kw">"details"</span><span class="ink">: {</span>
+      <span class="kw">"effect"</span><span class="ink">:</span>      <span class="str">"α:remove"</span><span class="ink">,</span>
+      <span class="kw">"entity"</span><span class="ink">:</span>      <span class="str">"Position"</span><span class="ink">,</span>
+      <span class="kw">"irrPoint"</span><span class="ink">:</span>    <span class="str">"high"</span><span class="ink">,</span>
+      <span class="kw">"hint"</span><span class="ink">:</span>        <span class="str">"forward-correction only — α:replace is allowed"</span>
+    <span class="ink">}</span>
+  <span class="ink">}</span></div>
+
+    <p class="note">
+      Same runtime, different verb. <code>α:&quot;remove&quot;</code> past <code>__irr.point=&quot;high&quot;</code> is unreachable by construction &mdash; not flagged after the fact, refused before the effect is ingested. This is the layer the PocketOS agent didn&rsquo;t have.
     </p>
 
   </section>
@@ -857,13 +989,13 @@
   <!-- ============================================================ -->
   <div class="who">
     <div class="eyebrow" style="margin-bottom:14px;">Who is this for</div>
+    <p class="not-for" style="margin-bottom: 18px;">
+      Not a chatbot toolkit &mdash; if you&rsquo;re shipping PDF summarisers, LangChain or the Anthropic SDK is closer.
+    </p>
     <p>
       You&rsquo;re an AI engineer who&rsquo;s past the <em>agent demo in a Jupyter notebook</em> phase. Your agent is going to touch a real system soon. You&rsquo;ve read the PocketOS post-mortem, the Amazon Kiro 13-hour outage write-up, the Cursor-deletes-Replit-database thread. You don&rsquo;t want guardrails. You want <span style="color: var(--accent);">the system itself to refuse the wrong action.</span>
     </p>
     <p style="margin-top: 12px;">This is for you.</p>
-    <p class="not-for">
-      If you&rsquo;re trying to build &ldquo;a chatbot that summarises PDFs,&rdquo; this isn&rsquo;t that. Try LangChain, Vercel AI SDK, or Anthropic&rsquo;s SDK directly.
-    </p>
   </div>
 
   <!-- ============================================================ -->
