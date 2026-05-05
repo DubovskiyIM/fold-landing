@@ -468,6 +468,82 @@
     font-size: 11.5px;
     color: var(--accent);
   }
+  .note strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  /* Cost / evidence grid under the artifact preview. Two columns
+     on desktop, stack on narrow. */
+  .cost-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-top: 28px;
+    border-top: 1px solid var(--rule);
+    padding-top: 28px;
+  }
+  @media(max-width: 720px) {
+    .cost-grid { grid-template-columns: 1fr; gap: 24px; }
+  }
+  .cost-eyebrow {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+    margin-bottom: 14px;
+  }
+  .cost-table { display: flex; flex-direction: column; gap: 14px; }
+  .cost-row { display: flex; flex-direction: column; gap: 3px; }
+  .cost-row .cost-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .cost-row .cost-shape {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .cost-row .cost-time {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .cost-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cost-bullets li {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    padding-left: 18px;
+    position: relative;
+  }
+  .cost-bullets li::before {
+    content: "›";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+  .cost-bullets li code {
+    font-size: 11.5px;
+    color: var(--accent);
+  }
+  .cost-bullets li em {
+    color: var(--ink);
+    font-style: italic;
+  }
 
   .demo-coda {
     margin-top: 28px;
@@ -691,7 +767,7 @@
     <a href="https://www.npmjs.com/package/@intent-driven/mcp-server" class="btn-ghost">npm install</a>
   </div>
   <div class="micro-meta">
-    open source · BSL 1.1 + MIT · no waitlist · <code>docker compose up</code> + <code>npm run demo:rogue</code>
+    open source · BSL 1.1 + MIT · <code>docker compose up</code> + <code>npm run demo:rogue</code> &mdash; 75 seconds to a structured 403
   </div>
 
   <!-- ============================================================ -->
@@ -802,6 +878,42 @@ roles.<span class="kw">agent</span> = {
 
     <p class="note">
       That&rsquo;s it. The runtime turns this into the <code>/api/agent/invest/exec/*</code> endpoint, the MCP tool description Claude reads, the structured 403 above, and the irreversibility guard. Same artifact powers four readers: UI, voice, agent, document. Author it once, no scaffolding to regenerate when the domain changes.
+    </p>
+
+    <div class="cost-grid">
+      <div class="cost-cell">
+        <div class="cost-eyebrow">How long does the artifact take?</div>
+        <div class="cost-table">
+          <div class="cost-row">
+            <span class="cost-name">invest</span>
+            <span class="cost-shape">14 entities · 61 intents · 5 invariants · ~600 lines</span>
+            <span class="cost-time">a weekend, hand-written</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-name">gravitino</span>
+            <span class="cost-shape">253 entities (Apache catalog OpenAPI) · 120 intents</span>
+            <span class="cost-time">imported in &lt;1h, enriched in 2d</span>
+          </div>
+          <div class="cost-row">
+            <span class="cost-name">workflow</span>
+            <span class="cost-shape">9 entities · 47 intents · timer queue · cascade rules</span>
+            <span class="cost-time">a day</span>
+          </div>
+        </div>
+      </div>
+      <div class="cost-cell">
+        <div class="cost-eyebrow">Where the speed comes from</div>
+        <ul class="cost-bullets">
+          <li><code>idf import postgres</code> &mdash; reads your live schema, generates entity baseline with FKs and column types as <code>fieldRole</code>.</li>
+          <li><code>idf import openapi</code> &mdash; reads your existing API spec, generates intents + parameter shapes + reference fields. <em>This is how a 253-entity domain gets bootstrapped.</em></li>
+          <li><code>idf import prisma</code> &mdash; same story for ORM-driven backends.</li>
+          <li><code>idf enrich</code> &mdash; LLM pass to fill <code>label</code>, <code>fieldRole</code>, <code>compositions</code>, suggested <code>roles.agent.preapproval</code> predicates from your existing code comments.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px;">
+      <strong>How it plugs in.</strong> Fold is a sibling service over an HTTP API the runtime exposes from your IDF artifact &mdash; not middleware in your existing app, not codegen at runtime. Your current backend stays where it is; the IDF artifact <em>describes</em> the agent-facing surface, and the runtime serves it on its own port. The MCP server is a stdio adapter Claude Desktop / Cursor / Zed connect to.
     </p>
   </section>
 
@@ -993,7 +1105,7 @@ roles.<span class="kw">agent</span> = {
       Not a chatbot toolkit &mdash; if you&rsquo;re shipping PDF summarisers, LangChain or the Anthropic SDK is closer.
     </p>
     <p>
-      You&rsquo;re an AI engineer who&rsquo;s past the <em>agent demo in a Jupyter notebook</em> phase. Your agent is going to touch a real system soon. You&rsquo;ve read the PocketOS post-mortem, the Amazon Kiro 13-hour outage write-up, the Cursor-deletes-Replit-database thread. You don&rsquo;t want guardrails. You want <span style="color: var(--accent);">the system itself to refuse the wrong action.</span>
+      You&rsquo;re the engineer at a 5&ndash;30-person team putting an AI agent into production this quarter &mdash; on top of a real backend, with real customers, real SOC2 Type II review on the horizon. You&rsquo;ve read the PocketOS post-mortem, the Amazon Kiro 13-hour outage write-up, the Cursor-deletes-Replit-database thread. You don&rsquo;t want a guardrail layer that reviews after the fact. You want <span style="color: var(--accent);">the system itself to refuse the wrong action &mdash; before the call, with a structured reason the agent can read.</span>
     </p>
     <p style="margin-top: 12px;">This is for you.</p>
   </div>
