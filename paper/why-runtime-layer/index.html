@@ -492,11 +492,11 @@
   <h2>What this looks like in practice</h2>
 
   <p>
-    We packaged the runtime as <code>@intent-driven/mcp-server</code> on npm and a Docker quickstart. It runs locally in two commands, against a real demo domain &mdash; <code>invest</code>, fourteen entities, sixty-one intents, five invariants, a seven-check preapproval guard.
+    We packaged the runtime as <code>@intent-driven/mcp-server</code> on npm and a Docker quickstart. It runs locally in two commands, against a real demo domain &mdash; <code>procurement</code>, eleven entities, twenty-two intents, eight invariants, a six-check preapproval guard. Corporate purchase requests, budgets, vendor commits, delivery confirmation. The kind of domain every B2B engineer knows from the inside out.
   </p>
 
   <p>
-    The three-act demo is short and concrete. <em>Act&nbsp;one</em>: an agent submits a fifty-thousand-dollar BTC long without preapproval. The runtime intercepts before any effect lands in storage. HTTP 403. Structured rejection. The agent didn&rsquo;t have a preapproval row in the world; the runtime tells it exactly that. <em>Act&nbsp;two</em>: a human, acting as the investor role, issues a thousand-dollar-cap preapproval through one declarative effect. No new endpoint, no middleware change &mdash; the intent <code>delegate_to_agent</code> is part of the same artifact the agent reads. <em>Act&nbsp;three</em>: the same agent now reads its own cap, scales the order from fifty thousand down to nine-fifty, executes. HTTP 200.
+    The three-act demo is short and concrete. <em>Act&nbsp;one</em>: an agent submits a thirty-five-hundred-dollar MacBook Pro purchase request without preapproval. The runtime intercepts before any effect lands in storage. HTTP 403. Structured rejection. The agent didn&rsquo;t have a preapproval row in the world; the runtime tells it exactly that. <em>Act&nbsp;two</em>: a human, acting as the requester role, issues a twenty-five-hundred-dollar-cap preapproval scoped to hardware/office/supplies categories through one declarative effect. No new endpoint, no middleware change &mdash; the intent <code>delegate_to_agent</code> is part of the same artifact the agent reads. <em>Act&nbsp;three</em>: the same agent now reads its own cap, swaps the line item from a $3,500 MacBook Pro to a $2,400 MacBook Air, executes. HTTP 200, request <code>auto_approved</code>. Bonus fourth act: the same agent then attempts a twenty-five-thousand-dollar server with the same preapproval &mdash; structured rejection on <code>failedCheck:&quot;maxAmount&quot;</code>. One declarative guard. Different inputs, different outcomes.
   </p>
 
   <p>

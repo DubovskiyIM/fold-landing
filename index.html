@@ -971,10 +971,10 @@
     <details class="transcript">
       <summary>Prefer reading? Three-act transcript</summary>
       <div class="transcript-body">
-        <p><strong>Setup.</strong> One terminal: <code>docker compose up</code> &mdash; the runtime boots with the <code>invest</code> demo domain (14 entities, 61 intents, 5 invariants, 7-check preapproval pipeline). Second terminal runs the three scripts back-to-back.</p>
-        <p><strong>Act 1 &mdash; <code>npm run demo:rogue</code>.</strong> Agent posts a $50,000 BTC long to <code>/api/agent/invest/exec/agent_execute_preapproved_order</code>. No preapproval exists. Runtime returns <code>HTTP 403 preapproval_denied</code> with a structured body: <code>{ error, intentId, reason: &quot;no_preapproval&quot;, details: { entity, ownerField, viewerId } }</code>. Zero effects ingested. The agent reads the JSON.</p>
-        <p><strong>Act 2 &mdash; <code>npm run demo:grant</code>.</strong> Investor (human role) issues one declarative effect: <code>AgentPreapproval { maxAmount: 1000, dailyLimit: 1000, expiresAt: +24h, status: &quot;active&quot; }</code>. One row in &Phi;, no middleware, no API-key rotation, no toggle in a separate auth dashboard.</p>
-        <p><strong>Act 3 &mdash; <code>npm run demo:smart</code>.</strong> Same agent, same intent, same call. This time it first reads <code>roles.agent.preapproval.maxAmount</code> from the tool description, sees <code>1000</code>, scales the order down to $950, and re-submits. Runtime runs the 7-check pipeline (active &rarr; notExpired &rarr; maxAmount &rarr; dailySum &rarr; invariants &rarr; <code>__irr</code>-guard &rarr; role-allowed) &mdash; all pass &mdash; <code>HTTP 200</code>, position confirmed.</p>
+        <p><strong>Setup.</strong> One terminal: <code>docker compose up</code> &mdash; the runtime boots with the <code>procurement</code> demo domain (11 entities, 22 intents, 8 invariants, 6-check preapproval pipeline). Second terminal runs the three scripts back-to-back.</p>
+        <p><strong>Act 1 &mdash; <code>npm run demo:rogue</code>.</strong> Agent posts a $3,500 MacBook Pro purchase request to <code>/api/agent/procurement/exec/agent_create_purchase_request</code>. No preapproval exists. Runtime returns <code>HTTP 403 preapproval_denied</code> with a structured body: <code>{ error, intentId, reason: &quot;no_preapproval&quot;, details: { entity, ownerField, viewerId } }</code>. Zero effects ingested. The agent reads the JSON.</p>
+        <p><strong>Act 2 &mdash; <code>npm run demo:grant</code>.</strong> Requester (human role, the engineer asking for the laptop) issues one declarative effect: <code>AgentPreapproval { maxOrderAmount: 2500, allowedCategories: &quot;hardware,office,supplies&quot;, dailyLimit: 5000, expiresAt: +30d, active: true }</code>. One row in &Phi;, no middleware, no API-key rotation, no toggle in a separate auth dashboard.</p>
+        <p><strong>Act 3 &mdash; <code>npm run demo:smart</code>.</strong> Same agent, same intent. This time it first reads <code>roles.agent.preapproval.maxOrderAmount</code> from the tool description, sees <code>2500</code>, swaps the MacBook Pro line item for a $2,400 MacBook Air, and re-submits. Runtime runs the 6-check pipeline (active &rarr; notExpired &rarr; maxAmount &rarr; allowedCategories &rarr; allowedVendors &rarr; dailySum) &mdash; all pass &mdash; <code>HTTP 200</code>, request <code>auto_approved</code>. Bonus: same script then tries a $25,000 server with the same preapproval &mdash; structured rejection on <code>failedCheck:&quot;maxAmount&quot;</code>.</p>
         <p><strong>Closing shot.</strong> Same domain, three behaviours, zero <code>if</code>-statements in agent code. The runtime told the agent what it could do, why it couldn&rsquo;t, and what would happen if it tried &mdash; before the call, not after.</p>
       </div>
     </details>
@@ -1100,40 +1100,46 @@
   <section class="block" id="artifact">
     <div class="eyebrow">What you write</div>
     <h2>The artifact, in fifteen lines.</h2>
-    <p class="lead">The runtime reads one declarative artifact &mdash; entities, intents, role scopes, preapproval predicates. Below: an excerpt from the <code>invest</code> demo domain. No DSL, no codegen &mdash; plain JS objects the runtime folds into an event log.</p>
+    <p class="lead">The runtime reads one declarative artifact &mdash; entities, intents, role scopes, preapproval predicates. Below: an excerpt from the <code>procurement</code> demo domain. No DSL, no codegen &mdash; plain JS objects the runtime folds into an event log.</p>
 
-<div class="terminal"><span class="cmt">// invest/intents.js — what the agent is allowed to call</span>
-intents.<span class="kw">agent_execute_preapproved_order</span> = {
+<div class="terminal"><span class="cmt">// procurement/intents.js — what the agent is allowed to call</span>
+intents.<span class="kw">agent_create_purchase_request</span> = {
   <span class="kw">base</span>: <span class="str">"create"</span>,
   <span class="kw">forRoles</span>: [<span class="str">"agent"</span>],
   <span class="kw">parameters</span>: {
-    <span class="kw">side</span>:     { <span class="kw">type</span>: <span class="str">"select"</span>, <span class="kw">options</span>: [<span class="str">"long"</span>, <span class="str">"short"</span>] },
-    <span class="kw">quantity</span>: { <span class="kw">type</span>: <span class="str">"number"</span>, <span class="kw">required</span>: <span class="num">true</span> },
-    <span class="kw">ticker</span>:   { <span class="kw">type</span>: <span class="str">"ref"</span>,    <span class="kw">entityRef</span>: <span class="str">"Asset"</span> },
+    <span class="kw">category</span>: { <span class="kw">type</span>: <span class="str">"select"</span>, <span class="kw">options</span>: [<span class="str">"hardware"</span>, <span class="str">"software"</span>, <span class="str">"office"</span>, ...] },
+    <span class="kw">vendorId</span>: { <span class="kw">type</span>: <span class="str">"ref"</span>,    <span class="kw">entityRef</span>: <span class="str">"Vendor"</span> },
+    <span class="kw">total</span>:    { <span class="kw">type</span>: <span class="str">"number"</span>, <span class="kw">required</span>: <span class="num">true</span> },
+    <span class="kw">reason</span>:   { <span class="kw">type</span>: <span class="str">"text"</span>,   <span class="kw">required</span>: <span class="num">true</span> },
   },
   <span class="kw">particles</span>: { <span class="kw">effects</span>: [
-    { <span class="kw">α</span>: <span class="str">"create"</span>, <span class="kw">entity</span>: <span class="str">"Order"</span>, <span class="kw">fields</span>: <span class="str">"$params"</span> },
+    { <span class="kw">α</span>: <span class="str">"add"</span>, <span class="kw">entity</span>: <span class="str">"PurchaseRequest"</span>, <span class="kw">fields</span>: <span class="str">"$params"</span> },
   ]},
 };
 
-<span class="cmt">// invest/ontology.js — what the agent is allowed to do, declaratively</span>
+<span class="cmt">// procurement/ontology.js — what the agent is allowed to do, declaratively</span>
 roles.<span class="kw">agent</span> = {
   <span class="kw">base</span>: <span class="str">"agent"</span>,
-  <span class="kw">canExecute</span>: [<span class="str">"agent_execute_preapproved_order"</span>],
+  <span class="kw">canExecute</span>: [<span class="str">"agent_create_purchase_request"</span>],
   <span class="kw">preapproval</span>: {
-    <span class="kw">required</span>: <span class="num">true</span>,
-    <span class="kw">predicates</span>: [<span class="str">"active"</span>, <span class="str">"notExpired"</span>, <span class="str">"maxAmount"</span>, <span class="str">"dailySum"</span>],
+    <span class="kw">requiredFor</span>: [<span class="str">"agent_create_purchase_request"</span>],
+    <span class="kw">checks</span>: [<span class="str">"active"</span>, <span class="str">"notExpired"</span>, <span class="str">"maxAmount"</span>, <span class="str">"csvInclude"</span>, <span class="str">"dailySum"</span>],
   },
 };</div>
 
     <p class="note">
-      That&rsquo;s it. The runtime turns this into the <code>/api/agent/invest/exec/*</code> endpoint, the MCP tool description Claude reads, the structured 403 above, and the irreversibility guard. Same artifact powers four readers: UI, voice, agent, document. Author it once, no scaffolding to regenerate when the domain changes.
+      That&rsquo;s it. The runtime turns this into the <code>/api/agent/procurement/exec/*</code> endpoint, the MCP tool description Claude reads, the structured 403 above, and the irreversibility guard. Same artifact powers four readers: UI, voice, agent, document. Author it once, no scaffolding to regenerate when the domain changes.
     </p>
 
     <div class="cost-grid">
       <div class="cost-cell">
         <div class="cost-eyebrow">How long does the artifact take?</div>
         <div class="cost-table">
+          <div class="cost-row">
+            <span class="cost-name">procurement</span>
+            <span class="cost-shape">11 entities · 22 intents · 8 invariants · ~700 lines</span>
+            <span class="cost-time">a day, reusing invest/compliance/freelance patterns</span>
+          </div>
           <div class="cost-row">
             <span class="cost-name">invest</span>
             <span class="cost-shape">14 entities · 61 intents · 5 invariants · ~600 lines</span>
@@ -1173,26 +1179,24 @@ roles.<span class="kw">agent</span> = {
   <section class="block" id="live">
     <div class="eyebrow">What it looks like</div>
     <h2>A rogue agent walks into a runtime.</h2>
-    <p class="lead">Verbatim output from <code>npm&nbsp;run&nbsp;demo:rogue</code> in the quickstart. Agent tries a $50,000 BTC long without preapproval.</p>
+    <p class="lead">Verbatim output from <code>npm&nbsp;run&nbsp;demo:rogue</code> in the quickstart. Agent tries a $3,500 MacBook Pro purchase request without preapproval.</p>
 
-    <div class="demo-caption">Step 1 &mdash; agent sends the order</div>
+    <div class="demo-caption">Step 1 &mdash; agent sends the request</div>
 <div class="terminal"><span class="prompt">$</span> npm run demo:rogue
 <span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-  <span class="warn">Rogue agent: 'Hmm, $50,000 BTC long, sounds reasonable.'</span>
+  <span class="warn">Rogue agent: 'Engineering needs a top-spec MacBook, $3,500 sounds reasonable.'</span>
 <span class="rule">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
   <span class="cmt">Agent sends:</span>
   <span class="ink">{</span>
-    <span class="kw">"portfolioId"</span><span class="ink">:</span> <span class="str">"p_demo"</span><span class="ink">,</span>
-    <span class="kw">"assetId"</span><span class="ink">:</span>     <span class="str">"BTC"</span><span class="ink">,</span>
-    <span class="kw">"α"</span><span class="ink">:</span>           <span class="str">"long"</span><span class="ink">,</span>
-    <span class="kw">"quantity"</span><span class="ink">:</span>    <span class="num">0.5</span><span class="ink">,</span>
-    <span class="kw">"price"</span><span class="ink">:</span>       <span class="num">100000</span><span class="ink">,</span>
-    <span class="kw">"total"</span><span class="ink">:</span>       <span class="num">50000</span><span class="ink">,</span>
-    <span class="kw">"assetType"</span><span class="ink">:</span>   <span class="str">"crypto"</span>
+    <span class="kw">"category"</span><span class="ink">:</span>   <span class="str">"hardware"</span><span class="ink">,</span>
+    <span class="kw">"vendorId"</span><span class="ink">:</span>   <span class="str">"v_apple"</span><span class="ink">,</span>
+    <span class="kw">"total"</span><span class="ink">:</span>      <span class="num">3500</span><span class="ink">,</span>
+    <span class="kw">"reason"</span><span class="ink">:</span>     <span class="str">"MacBook Pro 16\" M4 Max for new senior engineer"</span><span class="ink">,</span>
+    <span class="kw">"lineItems"</span><span class="ink">:</span> <span class="str">"[{name:'MacBook Pro 16 M4 Max', unitPrice:3500, qty:1}]"</span>
   <span class="ink">}</span></div>
 
     <p class="note">
-      <code>α</code> is the IDF effect verb &mdash; the &ldquo;what kind of change&rdquo; particle. Generic verbs (<code>create</code> / <code>replace</code> / <code>remove</code>) drive lifecycle; domains layer their own (<code>buy</code>, <code>sell</code>, <code>long</code>). Same shape across all verbs &mdash; <code>α:&quot;remove&quot;</code> on anything past <code>__irr.point=&quot;high&quot;</code> is blocked by construction.
+      <code>α</code> is the IDF effect verb &mdash; the &ldquo;what kind of change&rdquo; particle. Generic verbs (<code>add</code> / <code>replace</code> / <code>remove</code>) drive lifecycle; domains layer their own. Same shape across all verbs &mdash; <code>α:&quot;remove&quot;</code> on anything past <code>__irr.point=&quot;high&quot;</code> is blocked by construction.
     </p>
 
     <div class="demo-caption">Step 2 &mdash; runtime intercepts before any effect lands</div>
@@ -1203,7 +1207,7 @@ roles.<span class="kw">agent</span> = {
   Body:
   <span class="ink">{</span>
     <span class="kw">"error"</span><span class="ink">:</span>    <span class="err">"preapproval_denied"</span><span class="ink">,</span>
-    <span class="kw">"intentId"</span><span class="ink">:</span> <span class="str">"agent_execute_preapproved_order"</span><span class="ink">,</span>
+    <span class="kw">"intentId"</span><span class="ink">:</span> <span class="str">"agent_create_purchase_request"</span><span class="ink">,</span>
     <span class="kw">"reason"</span><span class="ink">:</span>   <span class="str">"no_preapproval"</span><span class="ink">,</span>
     <span class="kw">"details"</span><span class="ink">: {</span>
       <span class="kw">"entity"</span><span class="ink">:</span>      <span class="str">"AgentPreapproval"</span><span class="ink">,</span>
@@ -1213,22 +1217,22 @@ roles.<span class="kw">agent</span> = {
   <span class="ink">}</span></div>
 
     <p class="demo-coda">
-      Without Fold: a <code>200&nbsp;OK</code>. Position created. $50,000 of someone else&rsquo;s money moved before any human saw it.<br>
-      With Fold: the runtime rejected the call <em>declaratively</em>, with a structured <code>failedCheck</code> the agent can reason about. <a href="https://github.com/intent-driven-software/fold-runtime-quickstart#act-3--smart-agent-reads-the-limit-scales-down-executes">See Act 3 →</a>
+      Without Fold: a <code>200&nbsp;OK</code>. PurchaseRequest committed. $3,500 of a budget moved into <code>reserved</code> before any human saw it.<br>
+      With Fold: the runtime rejected the call <em>declaratively</em>, with a structured <code>failedCheck</code> the agent can reason about. <a href="https://github.com/intent-driven-software/fold-runtime-quickstart#act-3--npm-run-demosmart">See Act 3 →</a>
     </p>
 
     <div class="demo-caption" style="margin-top: 36px;">And on the deletion class &mdash; the same shape, by construction</div>
-<div class="terminal"><span class="cmt"># agent attempts to remove a confirmed Position with __irr.point="high"</span>
-<span class="prompt">$</span> curl -X POST :3001/api/agent/invest/exec/remove_position -d '{"id":"pos_42"}'
+<div class="terminal"><span class="cmt"># agent attempts to remove a confirmed PurchaseOrder with __irr.point="high" (delivered)</span>
+<span class="prompt">$</span> curl -X POST :3001/api/agent/procurement/exec/remove_order -d '{"id":"ord_42"}'
   HTTP <span class="err">403</span>
   Body:
   <span class="ink">{</span>
     <span class="kw">"error"</span><span class="ink">:</span>      <span class="err">"irreversibility_violation"</span><span class="ink">,</span>
-    <span class="kw">"intentId"</span><span class="ink">:</span>   <span class="str">"remove_position"</span><span class="ink">,</span>
+    <span class="kw">"intentId"</span><span class="ink">:</span>   <span class="str">"remove_order"</span><span class="ink">,</span>
     <span class="kw">"reason"</span><span class="ink">:</span>     <span class="str">"past_high_irr_point"</span><span class="ink">,</span>
     <span class="kw">"details"</span><span class="ink">: {</span>
       <span class="kw">"effect"</span><span class="ink">:</span>      <span class="str">"α:remove"</span><span class="ink">,</span>
-      <span class="kw">"entity"</span><span class="ink">:</span>      <span class="str">"Position"</span><span class="ink">,</span>
+      <span class="kw">"entity"</span><span class="ink">:</span>      <span class="str">"PurchaseOrder"</span><span class="ink">,</span>
       <span class="kw">"irrPoint"</span><span class="ink">:</span>    <span class="str">"high"</span><span class="ink">,</span>
       <span class="kw">"hint"</span><span class="ink">:</span>        <span class="str">"forward-correction only — α:replace is allowed"</span>
     <span class="ink">}</span>
@@ -1305,7 +1309,7 @@ roles.<span class="kw">agent</span> = {
   <section class="block" id="quickstart">
     <div class="eyebrow">Try it in 2 commands</div>
     <h2>Docker compose · npm install · three demos.</h2>
-    <p class="lead">Prereqs: Docker Desktop and Node 20+. The image bundles the runtime and bootstraps the <code>invest</code> demo domain on first start &mdash; no two-repo dance, no absolute paths.</p>
+    <p class="lead">Prereqs: Docker Desktop and Node 20+. The image bundles the runtime and bootstraps the <code>procurement</code> demo domain on first start &mdash; no two-repo dance, no absolute paths.</p>
     <div class="quickstart-grid">
 
       <div class="cell">
@@ -1335,9 +1339,9 @@ roles.<span class="kw">agent</span> = {
 <div class="terminal"><span class="prompt">$</span> npm run demo:rogue
 <span class="cmt"># → 403 structured rejection</span>
 <span class="prompt">$</span> npm run demo:grant
-<span class="cmt"># → investor issues $1K cap</span>
+<span class="cmt"># → requester issues $2.5K cap</span>
 <span class="prompt">$</span> npm run demo:smart
-<span class="cmt"># → agent scales → 200 OK</span></div>
+<span class="cmt"># → agent downsizes → 200 OK</span></div>
       </div>
 
     </div>
