@@ -6,20 +6,96 @@
 <title>Why we built the runtime layer between AI agents and your domain — Fold</title>
 
 <meta name="description" content="Long-form essay: agents don't fail because they're stupid. They fail because the systems they touch never tell them what's allowed. A runtime layer that does — declarative, structured, irreversibility-aware.">
+<meta name="author" content="Ignat Dubovskiy">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="theme-color" content="#14120f">
+
+<link rel="canonical" href="https://fold.intent-design.tech/paper/why-runtime-layer/">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
 <meta property="og:type" content="article">
+<meta property="og:site_name" content="Fold">
+<meta property="og:locale" content="en_US">
 <meta property="og:title" content="Why we built the runtime layer between AI agents and your domain">
 <meta property="og:description" content="Agents don't fail because they're stupid. They fail because the systems they touch never tell them what's allowed.">
 <meta property="og:image" content="https://fold.intent-design.tech/og-image.png">
+<meta property="og:image:secure_url" content="https://fold.intent-design.tech/og-image.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Fold — Stop giving AI agents API keys. Give them a domain.">
 <meta property="og:url" content="https://fold.intent-design.tech/paper/why-runtime-layer/">
 
+<meta property="article:published_time" content="2026-05-07T00:00:00Z">
+<meta property="article:modified_time" content="2026-05-07T00:00:00Z">
+<meta property="article:author" content="https://github.com/DubovskiyIM">
+<meta property="article:section" content="Engineering">
+<meta property="article:tag" content="AI agents">
+<meta property="article:tag" content="Model Context Protocol">
+<meta property="article:tag" content="runtime">
+<meta property="article:tag" content="declarative systems">
+<meta property="article:tag" content="agent safety">
+
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@DubovskiyIM">
 <meta name="twitter:title" content="Why we built the runtime layer between AI agents and your domain">
 <meta name="twitter:description" content="Agents don't fail because they're stupid. They fail because the systems they touch never tell them what's allowed.">
 <meta name="twitter:image" content="https://fold.intent-design.tech/og-image.png">
+<meta name="twitter:image:alt" content="Fold — Stop giving AI agents API keys. Give them a domain.">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Article",
+      "@id": "https://fold.intent-design.tech/paper/why-runtime-layer/#article",
+      "headline": "Why we built the runtime layer between AI agents and your domain",
+      "description": "Agents don't fail because they're stupid. They fail because the systems they touch never tell them what's allowed. A runtime layer that does — declarative, structured, irreversibility-aware.",
+      "image": "https://fold.intent-design.tech/og-image.png",
+      "datePublished": "2026-05-07T00:00:00Z",
+      "dateModified": "2026-05-07T00:00:00Z",
+      "inLanguage": "en-US",
+      "keywords": "AI agents, Model Context Protocol, MCP, runtime layer, declarative systems, agent safety, irreversibility, structured rejections",
+      "author": {
+        "@type": "Person",
+        "name": "Ignat Dubovskiy",
+        "url": "https://github.com/DubovskiyIM"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Intent-Driven Software",
+        "url": "https://github.com/intent-driven-software",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://fold.intent-design.tech/og-image.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://fold.intent-design.tech/paper/why-runtime-layer/"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Fold",
+          "item": "https://fold.intent-design.tech/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Paper — Why we built the runtime layer",
+          "item": "https://fold.intent-design.tech/paper/why-runtime-layer/"
+        }
+      ]
+    }
+  ]
+}
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
