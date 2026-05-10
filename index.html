@@ -917,7 +917,7 @@
 <!-- ============================================================ -->
 <main>
 
-  <div class="eyebrow accent hero-eyebrow">A domain runtime for AI agents</div>
+  <div class="eyebrow accent hero-eyebrow">Agent governance runtime</div>
 
   <h1 class="hero">
     Stop giving AI agents API keys. <em>Give them a domain.</em>
@@ -935,7 +935,7 @@
     <a href="https://www.npmjs.com/package/@intent-driven/mcp-server" class="btn-ghost">npm install</a>
   </div>
   <div class="micro-meta">
-    open source · BSL 1.1 + MIT · <code>docker compose up</code> + <code>npm run demo:rogue</code> &mdash; 70 seconds to a structured 403
+    open source · BSL 1.1 + MIT · <code>docker compose up</code> + <code>npm run demo:rogue</code> &mdash; 70 seconds to a structured 403 · <a href="https://github.com/intent-driven-software/idf-mcp/blob/main/docs/what-is-fold.md">full pitch</a>
   </div>
 
   <!-- ============================================================ -->
@@ -1163,7 +1163,7 @@ roles.<span class="kw">agent</span> = {
     </div>
 
     <p class="note" style="margin-top: 24px;">
-      <strong>How it plugs in.</strong> Fold is a sibling service over an HTTP API the runtime exposes from your IDF artifact &mdash; not middleware in your existing app, not codegen at runtime. Your current backend stays where it is; the IDF artifact <em>describes</em> the agent-facing surface, and the runtime serves it on its own port. The MCP server is a stdio adapter Claude Desktop / Cursor / Zed connect to.
+      <strong>How it plugs in.</strong> Fold is an MCP server (stdio adapter, slot-in for Claude Desktop / Cursor / Zed) in front of a runtime service that is <em>sibling</em> to your real backend &mdash; not middleware, not a proxy. Your current backend stays where it is; the IDF artifact <em>describes</em> the agent-facing surface, and the runtime serves it on its own port.
     </p>
   </section>
 
